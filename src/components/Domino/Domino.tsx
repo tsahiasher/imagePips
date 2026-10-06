@@ -79,9 +79,9 @@ export const Domino: React.FC<DominoProps> = ({
         height={height - 1}
         rx={rx}
         ry={rx}
-        fill="#f8fafc"
-        stroke={ariaSelected ? '#6366f1' : '#94a3b8'}
-        strokeWidth={ariaSelected ? 2.5 : 1.2}
+        fill="#ffffff"
+        stroke={ariaSelected ? '#6366f1' : '#334155'}
+        strokeWidth={ariaSelected ? 2.5 : 1.4}
       />
 
       {/* Internal subtle bevel / inset highlight */}

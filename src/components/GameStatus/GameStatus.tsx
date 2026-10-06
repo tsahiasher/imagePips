@@ -27,9 +27,8 @@ export const GameStatus: React.FC<GameStatusProps> = ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        background: 'rgba(15, 23, 42, 0.8)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        background: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
         padding: '10px 18px',
         gap: '6px'
       }}
@@ -53,8 +52,9 @@ export const GameStatus: React.FC<GameStatusProps> = ({
               gap: '6px',
               padding: '6px 12px',
               borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.06)',
-              color: 'var(--text-main)',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
               fontSize: '0.85rem',
               fontWeight: 600
             }}
@@ -73,8 +73,9 @@ export const GameStatus: React.FC<GameStatusProps> = ({
               gap: '6px',
               padding: '6px 12px',
               borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.06)',
-              color: 'var(--text-main)',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
               fontSize: '0.85rem',
               fontWeight: 600
             }}
@@ -92,7 +93,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
               fontSize: '1rem',
               fontWeight: 700,
               letterSpacing: '-0.02em',
-              color: 'var(--text-main)'
+              color: '#0f172a'
             }}
           >
             {puzzleName}
@@ -104,7 +105,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({
                 alignItems: 'center',
                 gap: '4px',
                 fontSize: '0.72rem',
-                color: '#f87171',
+                color: '#dc2626',
                 fontWeight: 700,
                 marginTop: '1px'
               }}
@@ -130,9 +131,9 @@ export const GameStatus: React.FC<GameStatusProps> = ({
             gap: '6px',
             padding: '6px 14px',
             borderRadius: '20px',
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            color: '#a5b4fc',
+            background: '#f1f5f9',
+            border: '1px solid #e2e8f0',
+            color: '#334155',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.95rem',
             fontWeight: 700

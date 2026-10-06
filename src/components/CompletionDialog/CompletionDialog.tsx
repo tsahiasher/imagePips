@@ -21,7 +21,7 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
         position: 'fixed',
         inset: 0,
         zIndex: 1200,
-        background: 'rgba(5, 8, 16, 0.8)',
+        background: 'rgba(15, 23, 42, 0.45)',
         backdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
@@ -43,8 +43,9 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           gap: '20px',
-          border: '1px solid rgba(99, 102, 241, 0.3)',
-          boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.25)'
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.18)'
         }}
       >
         {/* Animated celebration icon */}
@@ -57,7 +58,7 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 24px rgba(99, 102, 241, 0.6)'
+            boxShadow: '0 0 24px rgba(99, 102, 241, 0.4)'
           }}
         >
           <Trophy size={36} color="#ffffff" />
@@ -70,9 +71,7 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
               fontSize: '1.75rem',
               fontWeight: 800,
               letterSpacing: '-0.02em',
-              background: 'linear-gradient(to right, #ffffff, #a5b4fc)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              color: '#0f172a'
             }}
           >
             Puzzle Solved!
@@ -86,13 +85,13 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
         <div
           style={{
             width: '100%',
-            background: 'rgba(255, 255, 255, 0.04)',
+            background: '#f8fafc',
             borderRadius: '12px',
             padding: '16px',
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
             gap: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.06)'
+            border: '1px solid #e2e8f0'
           }}
         >
           <div style={{ textAlign: 'center' }}>
@@ -104,7 +103,7 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
                 fontFamily: 'var(--font-mono)',
                 fontSize: '1.35rem',
                 fontWeight: 700,
-                color: '#38bdf8'
+                color: '#0284c7'
               }}
             >
               {formatElapsedTime(elapsedMs)}
@@ -152,8 +151,9 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
               gap: '8px',
               padding: '12px 20px',
               borderRadius: '10px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--text-main)',
+              background: '#f1f5f9',
+              border: '1px solid #e2e8f0',
+              color: '#334155',
               fontWeight: 600,
               fontSize: '0.95rem'
             }}

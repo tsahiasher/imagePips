@@ -245,7 +245,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                 constraint={reg.constraint as Constraint}
                 color={reg.color}
                 invalid={isInvalid}
-                size={Math.max(28, cellSize * 0.44)}
+                size={Math.max(34, cellSize * 0.56)}
                 cx={cx}
                 cy={cy}
               />

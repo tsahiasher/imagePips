@@ -1,5 +1,14 @@
 # Progress Log
 
+**2026-10-06 — White theme, larger semi-transparent overlapping dominoes, and bold condition badges (offline code + tests + build + deploy). ✅ DONE**
+- Switched entire application theme to white background (`#ffffff`) and dark slate text while strictly preserving puzzle game squares / region colors.
+- Enlarged tray dominoes (cellSize increased to 34–42px) with horizontal slot placeholders (`[ | ]`) and compact 8px row spacing.
+- Implemented semi-transparent vertical domino rendering (`opacity: 0.82` with soft drop-shadow) that overlaps adjacent rows without expanding tray or row dimensions.
+- Configured dominoes to turn back to horizontal (`rotation = 0`) whenever a drag ends without dropping onto the board or when returned from board to tray.
+- Enlarged condition badges (`size: 0.56 * cellSize`) with bold white text (`fontWeight: 900`) and enhanced diamond borders.
+- Files touched: `src/index.css`, `src/components/ConditionBadge/ConditionBadge.tsx`, `src/components/PuzzleBoard/PuzzleBoard.tsx`, `src/components/Domino/Domino.tsx`, `src/components/DominoTray/DominoTray.tsx`, `src/components/GameStatus/GameStatus.tsx`, `src/components/PlayScreen/PlayScreen.tsx`, `src/components/ImportScreen/ImportScreen.tsx`, `src/components/CompletionDialog/CompletionDialog.tsx`, `src/game/useDominoDrag.ts`, `src/game/gameState.ts`, `docs/PROGRESS.md`.
+- Proof: 43 tests passing (`npm test`), production build passing (`npm run build`), Firebase deployment verified live.
+
 **2026-10-06 — Invariant square slots & constant tray height for rotation stability (offline code + tests + build + deploy). ✅ DONE**
 - Encapsulated each tray domino inside a fixed square `.tray-domino-slot` container (`slotSize x slotSize`).
 - When dominoes rotate between horizontal (2x1) and vertical (1x2), they rotate cleanly about their exact center point within the invariant square slot.

@@ -48,7 +48,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
       {/* Drop shadow filter or subtle under-layer */}
       <path
         d={diamondPath}
-        fill="rgba(0, 0, 0, 0.35)"
+        fill="rgba(0, 0, 0, 0.25)"
         transform={`translate(0, ${size * 0.08})`}
       />
 
@@ -57,7 +57,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         d={diamondPath}
         fill={color}
         stroke="#ffffff"
-        strokeWidth={1.5}
+        strokeWidth={2}
         strokeLinejoin="round"
       />
 
@@ -68,8 +68,8 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         fill="#ffffff"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={text.length >= 3 ? size * 0.38 : size * 0.44}
-        fontWeight="800"
+        fontSize={text.length >= 3 ? size * 0.42 : size * 0.48}
+        fontWeight="900"
         fontFamily="var(--font-sans), sans-serif"
         pointerEvents="none"
       >

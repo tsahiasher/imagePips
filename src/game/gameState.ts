@@ -186,6 +186,10 @@ export function returnDominoToTray(
   next = {
     ...next,
     placements: removeDomino(next.placements, dominoId),
+    dominoRotations: {
+      ...next.dominoRotations,
+      [dominoId]: 0
+    },
     moves: next.moves + 1
   };
 

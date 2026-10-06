@@ -106,7 +106,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
         width: '100vw',
         padding: '16px 14px',
         boxSizing: 'border-box',
-        background: 'radial-gradient(circle at 50% 10%, #1e1b4b 0%, #0b0f19 80%)',
+        background: '#f8fafc',
         color: 'var(--text-main)',
         overflow: 'hidden'
       }}
@@ -127,8 +127,9 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           gap: '18px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.7)'
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)'
         }}
       >
         {/* Logo and title */}
@@ -141,7 +142,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               height: '64px',
               borderRadius: '16px',
               objectFit: 'cover',
-              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.45)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
               marginBottom: '12px'
             }}
           />
@@ -151,9 +152,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               fontSize: '1.9rem',
               fontWeight: 800,
               letterSpacing: '-0.03em',
-              background: 'linear-gradient(to right, #ffffff, #c7d2fe)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#0f172a',
               margin: 0
             }}
           >
@@ -172,9 +171,9 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
             borderRadius: '12px',
             background: hasSavedSession
               ? 'linear-gradient(135deg, #6366f1, #4f46e5)'
-              : 'rgba(255, 255, 255, 0.04)',
-            color: hasSavedSession ? '#ffffff' : 'rgba(255, 255, 255, 0.28)',
-            border: hasSavedSession ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+              : '#f1f5f9',
+            color: hasSavedSession ? '#ffffff' : '#94a3b8',
+            border: hasSavedSession ? 'none' : '1px solid #e2e8f0',
             fontWeight: 700,
             fontSize: '0.95rem',
             boxShadow: hasSavedSession ? '0 4px 14px rgba(99, 102, 241, 0.35)' : 'none',
@@ -227,8 +226,8 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               width: '100%',
               padding: '32px 18px',
               borderRadius: '16px',
-              border: isDraggingFile ? '2px dashed #6366f1' : '2px dashed rgba(255, 255, 255, 0.15)',
-              background: isDraggingFile ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255, 255, 255, 0.02)',
+              border: isDraggingFile ? '2px dashed #6366f1' : '2px dashed #cbd5e1',
+              background: isDraggingFile ? '#eef2ff' : '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -249,17 +248,17 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
                 width: '48px',
                 height: '48px',
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.06)',
+                background: '#e0e7ff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
             >
-              <Upload size={22} color="#a5b4fc" />
+              <Upload size={22} color="#4f46e5" />
             </div>
 
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>
                 Drop screenshot here, or click to browse
               </div>
             </div>
@@ -274,9 +273,9 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               gap: '8px',
               padding: '10px 14px',
               borderRadius: '8px',
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#fca5a5',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#dc2626',
               fontSize: '0.85rem'
             }}
           >
@@ -296,16 +295,16 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               gap: '8px',
               padding: '10px 20px',
               borderRadius: '10px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: 'var(--text-main)',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              color: '#334155',
               cursor: 'pointer',
               fontWeight: 600,
               fontSize: '0.86rem',
               transition: 'background 0.15s ease'
             }}
           >
-            <Edit3 size={16} color="#a78bfa" />
+            <Edit3 size={16} color="#4f46e5" />
             <span>Build Manually</span>
           </button>
         </div>

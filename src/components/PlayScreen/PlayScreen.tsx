@@ -84,7 +84,8 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
         width: '100vw',
         maxWidth: '100vw',
         overflow: 'hidden',
-        position: 'relative'
+        position: 'relative',
+        background: '#ffffff'
       }}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -110,7 +111,8 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
           alignItems: 'center',
           padding: '6px 12px',
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
+          background: '#ffffff'
         }}
       >
         <PuzzleBoard

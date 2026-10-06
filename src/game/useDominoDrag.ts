@@ -249,8 +249,17 @@ export function useDominoDrag(
           }
 
           if (droppedOutsideBoard) {
-            // Return to tray
-            setGameState((prev) => returnDominoToTray(prev, dragState.dominoId));
+            // Return to tray and reset to horizontal
+            setGameState((prev) => {
+              const returned = returnDominoToTray(prev, dragState.dominoId);
+              return {
+                ...returned,
+                dominoRotations: {
+                  ...returned.dominoRotations,
+                  [dragState.dominoId]: 0
+                }
+              };
+            });
           } else {
             // Illegal drop on board -> return to previous placement and record invalid drop
             setGameState((prev) => ({
@@ -259,13 +268,15 @@ export function useDominoDrag(
             }));
           }
         } else {
-          // Dragged from tray and dropped illegally -> bounce back to tray
-          if (dragCandidate && !dragCandidate.isLegal) {
-            setGameState((prev) => ({
-              ...prev,
-              invalidDrops: prev.invalidDrops + 1
-            }));
-          }
+          // Dragged from tray and NOT dropped on legal board cells -> turn back to horizontal
+          setGameState((prev) => ({
+            ...prev,
+            invalidDrops: (dragCandidate && !dragCandidate.isLegal) ? prev.invalidDrops + 1 : prev.invalidDrops,
+            dominoRotations: {
+              ...prev.dominoRotations,
+              [dragState.dominoId]: 0
+            }
+          }));
         }
       }
 
