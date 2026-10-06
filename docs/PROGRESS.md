@@ -1,5 +1,14 @@
 # Progress Log
 
+**2026-10-06 — Invariant square slots & constant tray height for rotation stability (offline code + tests + build + deploy). ✅ DONE**
+- Encapsulated each tray domino inside a fixed square `.tray-domino-slot` container (`slotSize x slotSize`).
+- When dominoes rotate between horizontal (2x1) and vertical (1x2), they rotate cleanly about their exact center point within the invariant square slot.
+- The slot width, slot height, row height, and tray container height never change during rotation or placement.
+- Ensured the board above never shifts or pushes upward, and neighboring tray dominoes never shift sideways or vertically when a domino rotates.
+- Maintained constant minimum tray height based on total puzzle piece capacity so tray dimensions remain fully stable throughout gameplay.
+- Files touched: `src/components/DominoTray/DominoTray.tsx`, `docs/PROGRESS.md`.
+- Proof: 43 tests passing (`npm test`), production build passing (`npm run build`), Firebase deployment verified live.
+
 **2026-10-06 — Android system navigation bar clearance & dynamic viewport fix (offline code + tests + build + deploy). ✅ DONE**
 - Raised mobile tray clearance to `paddingBottom: max(84px, calc(env(safe-area-inset-bottom, 0px) + 76px))` ensuring the bottom row of 3 dominoes is lifted completely clear of the Android 3-button control bar.
 - Replaced `100vh` with `100dvh` on `.play-screen-root` so mobile browser address/navigation chrome does not push bottom screen content under the device buttons.
