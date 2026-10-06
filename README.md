@@ -68,8 +68,9 @@ Click **Build Manually** on the home screen to access the full editor:
 - **Importing Puzzles**: Click the **Import** button to load any previously saved `.json` puzzle file.
 - **Play Puzzle**: Click **Play Puzzle** to play your custom puzzle.
 
-### 5. Mobile Portrait Support
-The app is fully optimized for mobile devices in portrait orientation:
-- All screens (Home, Play, Verify, and Editor) fit within the viewport height (`100dvh`) with zero page scrolling.
-- Dominoes in the tray adaptively scale to fit neatly on smaller screens.
-- In the manual editor, use the quick **Grid / Regions / Dominoes** tabs to switch views comfortably on phones.
+### Example Screenshot
+Here is an example screenshot (`game1.jpg`) that can be dropped or uploaded into the application:
+
+<p align="center">
+  <img src="./game1.jpg" alt="Example Puzzle Screenshot (game1.jpg)" width="400" />
+</p>

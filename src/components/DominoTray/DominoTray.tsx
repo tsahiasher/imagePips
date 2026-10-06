@@ -4,6 +4,7 @@ import { Domino } from '../Domino/Domino';
 
 interface DominoTrayProps {
   unusedDominoes: DominoDefinition[];
+  totalDominoCount?: number;
   dominoRotations: Record<string, DominoRotationState>;
   onDominoClick: (dominoId: string) => void;
   onDominoPointerDown: (e: React.PointerEvent, dominoId: string, fromBoard: boolean) => void;
@@ -13,24 +14,30 @@ interface DominoTrayProps {
 
 export const DominoTray: React.FC<DominoTrayProps> = ({
   unusedDominoes,
+  totalDominoCount,
   dominoRotations,
   onDominoClick,
   onDominoPointerDown,
   selectedDominoId,
   className = ''
 }) => {
-  const trayCellSize = unusedDominoes.length > 10 ? 28 : unusedDominoes.length > 6 ? 34 : 42;
+  // Size remains constant based on total puzzle domino count, not shrinking/growing as pieces are placed
+  const count = totalDominoCount ?? unusedDominoes.length;
+  const trayCellSize = count > 10 ? 32 : count > 6 ? 36 : 42;
 
   return (
     <div
       className={`domino-tray-wrapper ${className}`}
       style={{
         width: '100%',
-        padding: '10px 12px',
-        background: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(10px)',
+        paddingTop: '14px',
+        paddingLeft: '12px',
+        paddingRight: '12px',
+        paddingBottom: 'max(36px, env(safe-area-inset-bottom, 32px))',
+        background: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(12px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.25)',
+        boxShadow: '0 -6px 20px rgba(0, 0, 0, 0.35)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -46,8 +53,8 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
           justifyContent: 'center',
           alignItems: 'center',
           maxWidth: '800px',
-          padding: '2px',
-          overflow: 'hidden'
+          padding: '4px',
+          overflow: 'visible'
         }}
       >
         {unusedDominoes.length === 0 ? (

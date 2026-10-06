@@ -102,11 +102,12 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
       <main
         style={{
           flex: 1,
+          minHeight: 0,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '12px',
-          overflow: 'auto',
+          padding: '6px 12px',
+          overflow: 'hidden',
           position: 'relative'
         }}
       >
@@ -124,6 +125,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
       {/* Domino Tray */}
       <DominoTray
         unusedDominoes={unusedDominoes}
+        totalDominoCount={puzzle.dominoes.length}
         dominoRotations={gameState.dominoRotations}
         onDominoClick={() => {}}
         onDominoPointerDown={handlePointerDown}
