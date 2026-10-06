@@ -69,7 +69,7 @@ export async function loadImageFromSource(
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const ctx = canvas.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' });
         if (!ctx) {
           throw new Error('Failed to create 2D canvas rendering context.');
         }

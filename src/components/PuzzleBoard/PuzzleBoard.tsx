@@ -22,9 +22,11 @@ interface PuzzleBoardProps {
   invalidRegionIds?: string[];
   cellSize?: number;
   dragCandidate?: DragCandidate | null;
+  selectedDominoId?: string | null;
   onDominoClick?: (dominoId: string) => void;
   onDominoPointerDown?: (e: React.PointerEvent, dominoId: string, fromBoard: boolean) => void;
   onCellClick?: (cellId: CellId) => void;
+  onEmptyBoardClick?: () => void;
   boardRef?: React.RefObject<SVGSVGElement | null>;
   className?: string;
 }
@@ -35,9 +37,11 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   invalidRegionIds = [],
   cellSize = 72,
   dragCandidate = null,
+  selectedDominoId = null,
   onDominoClick,
   onDominoPointerDown,
   onCellClick,
+  onEmptyBoardClick,
   boardRef,
   className = ''
 }) => {
@@ -128,6 +132,11 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         }}
         id="pips-puzzle-board"
         aria-label="Pips Puzzle Board"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onEmptyBoardClick?.();
+          }
+        }}
       >
         {/* Playable cells */}
         <g className="board-cells">
@@ -174,14 +183,16 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         <g className="placed-dominoes">
           {placements.map((placement) => {
             const domino = dominoMap.get(placement.dominoId);
-            const cellA = cellMap.get(placement.cellA);
-            const cellB = cellMap.get(placement.cellB);
-            if (!domino || !cellA || !cellB) return null;
+            if (!domino) return null;
+
+            const parsedA = parseCellId(placement.cellA);
+            const parsedB = parseCellId(placement.cellB);
+            if (isNaN(parsedA.row) || isNaN(parsedB.row)) return null;
 
             // Center inside cell pair bounding box
             const margin = Math.max(3, cellSize * 0.05);
-            const topRow = Math.min(cellA.row, cellB.row);
-            const leftCol = Math.min(cellA.col, cellB.col);
+            const topRow = Math.min(parsedA.row, parsedB.row);
+            const leftCol = Math.min(parsedA.col, parsedB.col);
             const x = padding + (leftCol - minCol) * cellSize + margin;
             const y = padding + (topRow - minRow) * cellSize + margin;
 
@@ -197,6 +208,8 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                   domino={domino}
                   rotation={placement.rotation}
                   cellSize={cellSize}
+                  isPlaced={true}
+                  isSelected={placement.dominoId === selectedDominoId}
                 />
               </g>
             );

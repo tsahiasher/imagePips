@@ -38,6 +38,9 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
   const {
     dragState,
     dragCandidate,
+    selectedDominoId,
+    effectivePlacements,
+    deselectDomino,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp
@@ -117,18 +120,24 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
       >
         <PuzzleBoard
           puzzle={puzzle}
-          placements={gameState.placements}
+          placements={effectivePlacements}
           invalidRegionIds={displayedInvalidRegions}
           cellSize={cellSize}
           dragCandidate={dragCandidate}
+          selectedDominoId={selectedDominoId}
           onDominoPointerDown={handlePointerDown}
+          onCellClick={deselectDomino}
+          onEmptyBoardClick={deselectDomino}
           boardRef={boardSvgRef}
         />
       </main>
 
       {/* Domino Tray */}
       <DominoTray
+        dominoes={puzzle.dominoes}
         unusedDominoes={unusedDominoes}
+        placedDominoIds={placedIds}
+        draggingDominoId={dragState?.hasMoved ? dragState.dominoId : null}
         totalDominoCount={puzzle.dominoes.length}
         dominoRotations={gameState.dominoRotations}
         onDominoClick={() => {}}

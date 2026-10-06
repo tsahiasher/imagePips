@@ -3,6 +3,7 @@ import { GridParameters } from './gridDetection';
 import { recognizeBadgeToken } from './tokenRecognition';
 import { colorDistance, snapToVibrantPalette } from './regionDetection';
 import { BoundingBox, DetectedBadgeCandidate, ImageDataLike } from './types';
+import { isImportDebugEnabled } from './debugConfig';
 
 export interface BadgeDetectionResult {
   acceptedBadges: DetectedBadgeCandidate[];
@@ -76,8 +77,8 @@ export function detectConditionBadges(
   const imgH = image.height;
 
   // Margin around boardBox where badges may project outwards
-  const padX = Math.round(grid.cellSize * 0.4);
-  const padY = Math.round(grid.cellSize * 0.4);
+  const padX = Math.round(grid.cellSize * 0.6);
+  const padY = Math.round(grid.cellSize * 0.6);
 
   const startX = Math.max(0, boardBox.x - padX);
   const endX = Math.min(imgW, boardBox.x + boardBox.width + padX);
@@ -102,9 +103,25 @@ export function detectConditionBadges(
 
       const maxV = Math.max(r, g, b);
       const minV = Math.min(r, g, b);
-      const sat = maxV > 0 ? (maxV - minV) / maxV : 0;
+      const diff = maxV - minV;
+      const sat = maxV > 0 ? diff / maxV : 0;
 
-      if (sat > 0.50 && maxV > 80 && maxV < 240) {
+      let hue = 0;
+      if (diff > 0) {
+        if (maxV === r) {
+          hue = (60 * ((g - b) / diff) + 360) % 360;
+        } else if (maxV === g) {
+          hue = (60 * ((b - r) / diff) + 120) % 360;
+        } else {
+          hue = (60 * ((r - g) / diff) + 240) % 360;
+        }
+      }
+
+      // Teal/Cyan/Sky-Blue hues (150..250) have naturally lower peak luminance and are vulnerable to
+      // browser gamut shifts (e.g. Firefox color management). Use 0.28 threshold for teal/blue hues,
+      // and 0.45 for warm/vibrant hues (orange, yellow, pink) to prevent merging into cell backgrounds.
+      const satThreshold = (hue >= 150 && hue <= 250) ? 0.28 : 0.45;
+      if (sat > satThreshold && maxV > 80 && maxV < 240) {
         mask[rowOffset + dx] = 1;
       }
     }
@@ -203,13 +220,14 @@ export function detectConditionBadges(
     let rejectionReason: string | undefined;
 
     // Reject small dashed border fragments (typically < 300 pixels)
-    if (comp.pixelCount < 1800) {
-      rejectionReason = `Border fragment / noise (only ${comp.pixelCount}px, expected >1800px)`;
-    } else if (comp.pixelCount > 9000) {
+    const minBadgePixels = Math.min(1200, Math.round(grid.cellSize * grid.cellSize * 0.10));
+    if (comp.pixelCount < minBadgePixels) {
+      rejectionReason = `Border fragment / noise (only ${comp.pixelCount}px, expected >${minBadgePixels}px)`;
+    } else if (comp.pixelCount > 12000) {
       rejectionReason = `Too large for badge (${comp.pixelCount}px)`;
-    } else if (bw < 50 || bh < 50) {
+    } else if (bw < 35 || bh < 35) {
       rejectionReason = `Too small dimensions (${bw}x${bh}px)`;
-    } else if (aspect < 0.65 || aspect > 1.55) {
+    } else if (aspect < 0.60 || aspect > 1.65) {
       rejectionReason = `Non-square aspect ratio (${aspect.toFixed(2)})`;
     }
 
@@ -260,6 +278,34 @@ export function detectConditionBadges(
     b.id = `badge_${idx + 1}`;
   });
 
+  const debug = isImportDebugEnabled();
+
+  if (debug) {
+    console.groupCollapsed?.('[DEBUG] Condition Badge Detection Diagnostics') ??
+      console.log('[DEBUG] Condition Badge Detection Diagnostics:');
+    console.log(`Scan area: [${startX}, ${startY}] -> [${endX}, ${endY}] (${scanW}x${scanH})`);
+    console.log(`Raw components found (pixelCount >= 30): ${rawComponents.length}`);
+    rawComponents.forEach((c, idx) => {
+      console.log(
+        `  comp_${idx + 1}: at (${c.cx},${c.cy}) size=${c.maxX - c.minX + 1}x${c.maxY - c.minY + 1} px=${c.pixelCount} avgRGB=(${c.avgR},${c.avgG},${c.avgB})`
+      );
+    });
+    if (rejectedBadges.length > 0) {
+      console.warn(`Rejected badges (${rejectedBadges.length}):`);
+      rejectedBadges.forEach((b) => {
+        console.warn(
+          `  at (${Math.round(b.x)},${Math.round(b.y)}) size=${b.width}x${b.height} color=${b.colorHex}: ${b.rejectionReason}`
+        );
+      });
+    }
+    console.log(`Accepted badges (${acceptedBadges.length}):`);
+    acceptedBadges.forEach((b) => {
+      console.log(
+        `  ${b.id} "${b.recognizedToken}" at (${Math.round(b.x)},${Math.round(b.y)}) color=${b.colorHex}`
+      );
+    });
+  }
+
   // Associate each accepted badge with the best matching region
   const updatedRegions: Region[] = regions.map((r) => ({ ...r }));
   const assignedBadgeIds = new Set<string>();
@@ -279,8 +325,8 @@ export function detectConditionBadges(
       const badgeRgb = parseHex(badge.colorHex);
       const cDist = colorDistance(regRgb, badgeRgb);
 
-      // Badge must match the region color
-      if (cDist > 65) continue;
+      // Badge must match the region color (allow adjacent gamut shades like teal/sky-blue up to 130)
+      if (cDist > 130) continue;
 
       // Find minimum distance from badge to any cell in the region
       let minDistToRegion = Infinity;
@@ -297,7 +343,7 @@ export function detectConditionBadges(
       // Proximity penalty + color similarity check
       const totalCost = minDistToRegion + cDist * 2.0;
 
-      if (totalCost < bestDist && minDistToRegion < grid.cellSize * 1.6) {
+      if (totalCost < bestDist && minDistToRegion < grid.cellSize * 1.8) {
         bestDist = totalCost;
         bestBadge = badge;
       }
@@ -311,7 +357,27 @@ export function detectConditionBadges(
         x: (bestBadge.x - grid.originX) / grid.cellWidth,
         y: (bestBadge.y - grid.originY) / grid.cellHeight
       };
+      if (debug) {
+        console.log(
+          `  [MATCH] Region ${reg.id} (${reg.color}, [${reg.cellIds.join(',')}]) -> Badge ${bestBadge.id} "${bestBadge.recognizedToken}" (${bestBadge.colorHex})`
+        );
+      }
+    } else if (reg.color !== '#dfccc4' && reg.color !== '#e2e8f0') {
+      if (debug) {
+        console.warn(
+          `  [MISSING] Region ${reg.id} (${reg.color}, [${reg.cellIds.join(', ')}]) has NO matched badge!\n` +
+          acceptedBadges.map((b) => {
+            const badgeRgb = parseHex(b.colorHex);
+            const cDist = colorDistance(regRgb, badgeRgb);
+            return `    ${b.id} "${b.recognizedToken}" (${b.colorHex}) at (${Math.round(b.x)},${Math.round(b.y)}): cDist=${cDist.toFixed(0)}, assigned=${assignedBadgeIds.has(b.id)}`;
+          }).join('\n')
+        );
+      }
     }
+  }
+
+  if (debug) {
+    console.groupEnd?.();
   }
 
   return { acceptedBadges, rejectedBadges, updatedRegions };

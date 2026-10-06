@@ -1,9 +1,16 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { DominoRotationState, getRotationDetails } from '../domain/domino';
-import { canPlaceDomino } from '../domain/placement';
-import { CellId } from '../domain/puzzle';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DominoDefinition, DominoRotationState, getRotationDetails } from '../domain/domino';
+import { canPlaceDomino, DominoPlacement, placeDomino } from '../domain/placement';
+import { CellId, Puzzle, makeCellId, parseCellId } from '../domain/puzzle';
 import { DragCandidate } from '../components/PuzzleBoard/PuzzleBoard';
-import { GameState, placeDominoOnBoard, returnDominoToTray, rotatePlacedDomino, rotateTrayDomino } from './gameState';
+import {
+  GameState,
+  ensureTimerStarted,
+  evaluatePostMoveState,
+  placeDominoOnBoard,
+  returnDominoToTray,
+  rotateTrayDomino
+} from './gameState';
 
 export interface DragState {
   dominoId: string;
@@ -16,6 +23,71 @@ export interface DragState {
   hasMoved: boolean;
 }
 
+export interface SelectedPlacement {
+  dominoId: string;
+  original: DominoPlacement;
+  candidate: DominoPlacement;
+  anchorRow: number;
+  anchorCol: number;
+  reversedAnchor: boolean;
+  step: number; // 0: Right, 1: Down, 2: Left, 3: Up
+  isLegal: boolean;
+}
+
+/**
+ * Finds the candidate cell pair for a domino rotated 90 degrees clockwise.
+ * Always rotates around the top square of the domino, which remains strictly pinned in place
+ * across all 4 rotation quadrants (Right -> Down -> Left -> Up -> Right).
+ */
+function getRotationStepCandidate(
+  puzzle: Puzzle,
+  otherPlacements: DominoPlacement[],
+  domino: DominoDefinition,
+  anchorRow: number,
+  anchorCol: number,
+  reversedAnchor: boolean,
+  step: number
+): { placement: DominoPlacement; isLegal: boolean } {
+  let otherRow = anchorRow;
+  let otherCol = anchorCol;
+
+  // 0: Right, 1: Down, 2: Left, 3: Up
+  if (step === 0) otherCol += 1;
+  else if (step === 1) otherRow += 1;
+  else if (step === 2) otherCol -= 1;
+  else if (step === 3) otherRow -= 1;
+
+  const anchorId = makeCellId(anchorRow, anchorCol);
+  const otherId = makeCellId(otherRow, otherCol);
+
+  const cellA = !reversedAnchor ? anchorId : otherId;
+  const cellB = !reversedAnchor ? otherId : anchorId;
+  const orientation = step % 2 === 0 ? 'horizontal' : 'vertical';
+  const rotation: DominoRotationState = !reversedAnchor
+    ? (step as DominoRotationState)
+    : (((step + 2) % 4) as DominoRotationState);
+  const reversed = rotation === 2 || rotation === 3;
+
+  const candPlacement: DominoPlacement = {
+    dominoId: domino.id,
+    cellA,
+    cellB,
+    orientation,
+    reversed,
+    rotation
+  };
+
+  const isLegal = canPlaceDomino(
+    puzzle,
+    otherPlacements,
+    domino,
+    candPlacement.cellA,
+    candPlacement.cellB
+  );
+
+  return { placement: candPlacement, isLegal };
+}
+
 export function useDominoDrag(
   gameState: GameState,
   setGameState: React.Dispatch<React.SetStateAction<GameState>>,
@@ -25,6 +97,65 @@ export function useDominoDrag(
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [dragCandidate, setDragCandidate] = useState<DragCandidate | null>(null);
   const pointerIdRef = useRef<number | null>(null);
+
+  // Selection state for placed dominoes
+  const [selectedPlacement, setSelectedPlacement] = useState<SelectedPlacement | null>(null);
+  const selectedPlacementRef = useRef<SelectedPlacement | null>(null);
+  selectedPlacementRef.current = selectedPlacement;
+
+  const gameStateRef = useRef<GameState>(gameState);
+  gameStateRef.current = gameState;
+
+  const selectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const commitOrRevertSelected = useCallback(() => {
+    if (selectionTimerRef.current) {
+      clearTimeout(selectionTimerRef.current);
+      selectionTimerRef.current = null;
+    }
+    const sel = selectedPlacementRef.current;
+    if (!sel) return;
+
+    setSelectedPlacement(null);
+
+    if (sel.isLegal) {
+      const hasChanged =
+        sel.candidate.cellA !== sel.original.cellA ||
+        sel.candidate.cellB !== sel.original.cellB ||
+        sel.candidate.rotation !== sel.original.rotation;
+
+      if (hasChanged) {
+        setGameState((prev) => {
+          let next = ensureTimerStarted(prev, performance.now());
+          const updatedPlacements = placeDomino(next.placements, sel.candidate);
+          next = {
+            ...next,
+            placements: updatedPlacements,
+            rotations: next.rotations + 1
+          };
+          return evaluatePostMoveState(next);
+        });
+      }
+    } else {
+      // Revert to original placement if candidate is illegal
+      setGameState((prev) => {
+        const restoredPlacements = placeDomino(prev.placements, sel.original);
+        return {
+          ...prev,
+          placements: restoredPlacements
+        };
+      });
+    }
+  }, [setGameState]);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (selectionTimerRef.current) {
+        clearTimeout(selectionTimerRef.current);
+      }
+    };
+  }, []);
 
   // Compute cell bounds
   let minRow = 0;
@@ -43,6 +174,11 @@ export function useDominoDrag(
       // Only handle primary pointer (left click or single touch)
       if (e.button !== 0 && e.pointerType === 'mouse') return;
 
+      // If a different domino is currently selected, commit/revert it first
+      if (selectedPlacementRef.current && selectedPlacementRef.current.dominoId !== dominoId) {
+        commitOrRevertSelected();
+      }
+
       const target = e.currentTarget as HTMLElement | SVGElement;
       try {
         target.setPointerCapture(e.pointerId);
@@ -54,7 +190,10 @@ export function useDominoDrag(
       // Find current rotation of this domino
       let rotation: DominoRotationState = 0;
       if (fromBoard) {
-        const placement = gameState.placements.find((p) => p.dominoId === dominoId);
+        const placement =
+          selectedPlacementRef.current?.dominoId === dominoId
+            ? selectedPlacementRef.current.candidate
+            : gameState.placements.find((p) => p.dominoId === dominoId);
         if (placement) rotation = placement.rotation;
       } else {
         rotation = gameState.dominoRotations[dominoId] ?? 0;
@@ -72,7 +211,7 @@ export function useDominoDrag(
       });
       setDragCandidate(null);
     },
-    [gameState]
+    [gameState, commitOrRevertSelected]
   );
 
   const handlePointerMove = useCallback(
@@ -84,6 +223,10 @@ export function useDominoDrag(
       const dist = Math.hypot(dx, dy);
 
       const hasMoved = dist > 6 || dragState.hasMoved;
+
+      if (hasMoved && selectedPlacementRef.current) {
+        commitOrRevertSelected();
+      }
 
       setDragState((prev) =>
         prev
@@ -149,9 +292,10 @@ export function useDominoDrag(
         const cA = reversed ? idB : idA;
         const cB = reversed ? idA : idB;
 
+        const otherPlacements = gameState.placements.filter((p) => p.dominoId !== domino.id);
         const isLegal = canPlaceDomino(
           gameState.puzzle,
-          gameState.placements,
+          otherPlacements,
           domino,
           cA,
           cB
@@ -182,7 +326,7 @@ export function useDominoDrag(
         setDragCandidate(null);
       }
     },
-    [dragState, boardSvgRef, cellSize, padding, minCol, minRow, gameState]
+    [dragState, boardSvgRef, cellSize, padding, minCol, minRow, gameState, commitOrRevertSelected]
   );
 
   const handlePointerUp = useCallback(
@@ -206,10 +350,90 @@ export function useDominoDrag(
       // If user merely tapped / clicked without dragging (< 6px):
       if (dist <= 6 && !dragState.hasMoved) {
         if (dragState.fromBoard) {
-          // Tap on placed domino -> rotate on board
-          setGameState((prev) => rotatePlacedDomino(prev, dragState.dominoId));
+          const currentSel = selectedPlacementRef.current;
+          const domino = gameState.puzzle.dominoes.find((d) => d.id === dragState.dominoId);
+          const currentPlacement = gameState.placements.find((p) => p.dominoId === dragState.dominoId);
+
+          if (domino && currentPlacement) {
+            if (!currentSel || currentSel.dominoId !== dragState.dominoId) {
+              // Click on unselected domino: Select it (transparency 75%, thinner black edge)
+              if (currentSel) {
+                commitOrRevertSelected();
+              }
+              const parsedA = parseCellId(currentPlacement.cellA);
+              const parsedB = parseCellId(currentPlacement.cellB);
+              const anchorRow = Math.min(parsedA.row, parsedB.row);
+              const anchorCol = Math.min(parsedA.col, parsedB.col);
+              const anchorId = makeCellId(anchorRow, anchorCol);
+              const reversedAnchor = currentPlacement.cellB === anchorId;
+
+              const otherParsed = currentPlacement.cellA === anchorId ? parsedB : parsedA;
+              let initialStep = 0;
+              if (otherParsed.col === anchorCol + 1) initialStep = 0; // Right
+              else if (otherParsed.row === anchorRow + 1) initialStep = 1; // Down
+              else if (otherParsed.col === anchorCol - 1) initialStep = 2; // Left
+              else if (otherParsed.row === anchorRow - 1) initialStep = 3; // Up
+
+              const newSel: SelectedPlacement = {
+                dominoId: dragState.dominoId,
+                original: currentPlacement,
+                candidate: currentPlacement,
+                anchorRow,
+                anchorCol,
+                reversedAnchor,
+                step: initialStep,
+                isLegal: true
+              };
+              setSelectedPlacement(newSel);
+
+              if (selectionTimerRef.current) {
+                clearTimeout(selectionTimerRef.current);
+              }
+              selectionTimerRef.current = setTimeout(() => {
+                commitOrRevertSelected();
+              }, 1000);
+            } else {
+              // Click on already selected domino: Rotate 90 deg clockwise around the pinned top square
+              const otherPlacements = gameState.placements.filter(
+                (p) => p.dominoId !== dragState.dominoId
+              );
+              const nextStep = (currentSel.step + 1) % 4;
+              const cand = getRotationStepCandidate(
+                gameState.puzzle,
+                otherPlacements,
+                domino,
+                currentSel.anchorRow,
+                currentSel.anchorCol,
+                currentSel.reversedAnchor,
+                nextStep
+              );
+
+              const updatedSel: SelectedPlacement = {
+                dominoId: dragState.dominoId,
+                original: currentSel.original,
+                candidate: cand.placement,
+                anchorRow: currentSel.anchorRow,
+                anchorCol: currentSel.anchorCol,
+                reversedAnchor: currentSel.reversedAnchor,
+                step: nextStep,
+                isLegal: cand.isLegal
+              };
+              setSelectedPlacement(updatedSel);
+
+              // Reset 1-second countdown from the last click
+              if (selectionTimerRef.current) {
+                clearTimeout(selectionTimerRef.current);
+              }
+              selectionTimerRef.current = setTimeout(() => {
+                commitOrRevertSelected();
+              }, 1000);
+            }
+          }
         } else {
           // Tap on tray domino -> rotate in tray
+          if (selectedPlacementRef.current) {
+            commitOrRevertSelected();
+          }
           setGameState((prev) => rotateTrayDomino(prev, dragState.dominoId));
         }
         setDragState(null);
@@ -283,12 +507,23 @@ export function useDominoDrag(
       setDragState(null);
       setDragCandidate(null);
     },
-    [dragState, dragCandidate, boardSvgRef, setGameState]
+    [dragState, dragCandidate, boardSvgRef, setGameState, gameState, commitOrRevertSelected]
   );
+
+  // Placements with the currently selected domino reflecting its rotated candidate position
+  const effectivePlacements = useMemo(() => {
+    if (!selectedPlacement) return gameState.placements;
+    return gameState.placements.map((p) =>
+      p.dominoId === selectedPlacement.dominoId ? selectedPlacement.candidate : p
+    );
+  }, [gameState.placements, selectedPlacement]);
 
   return {
     dragState,
     dragCandidate,
+    selectedDominoId: selectedPlacement?.dominoId ?? null,
+    effectivePlacements,
+    deselectDomino: commitOrRevertSelected,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp

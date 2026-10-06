@@ -291,9 +291,9 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: '10px 16px',
-          background: 'rgba(15, 23, 42, 0.85)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          padding: '8px 14px',
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
           gap: '8px',
           flexWrap: 'wrap'
         }}
@@ -307,10 +307,12 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               gap: '6px',
               padding: '6px 12px',
               borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--text-main)',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
               fontWeight: 600,
-              fontSize: '0.85rem'
+              fontSize: '0.85rem',
+              cursor: 'pointer'
             }}
           >
             <ArrowLeft size={16} />
@@ -322,13 +324,13 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             style={{
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
               borderRadius: '8px',
               padding: '5px 10px',
               fontWeight: 700,
               fontSize: '0.9rem',
-              color: '#ffffff',
+              color: '#0f172a',
               maxWidth: '180px'
             }}
           />
@@ -345,8 +347,9 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               gap: '4px',
               padding: '6px 12px',
               borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--text-main)',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
               fontSize: '0.82rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -365,8 +368,9 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               gap: '4px',
               padding: '6px 12px',
               borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--text-main)',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
               fontSize: '0.82rem',
               fontWeight: 600,
               cursor: 'pointer'
@@ -382,8 +386,12 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               alignItems: 'center',
               gap: '4px',
               fontSize: '0.8rem',
-              fontWeight: 600,
-              color: isBalanced ? '#34d399' : '#f87171'
+              fontWeight: 700,
+              padding: '4px 8px',
+              borderRadius: '6px',
+              background: isBalanced ? '#ecfdf5' : '#fef2f2',
+              border: `1px solid ${isBalanced ? '#a7f3d0' : '#fecaca'}`,
+              color: isBalanced ? '#059669' : '#dc2626'
             }}
           >
             {isBalanced ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
@@ -403,15 +411,18 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             gap: '6px',
             padding: '7px 16px',
             borderRadius: '8px',
-            background: isBalanced ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(255, 255, 255, 0.1)',
-            color: '#ffffff',
+            background: isBalanced
+              ? 'linear-gradient(135deg, #10b981, #059669)'
+              : '#f1f5f9',
+            border: isBalanced ? 'none' : '1px solid #e2e8f0',
+            color: isBalanced ? '#ffffff' : '#94a3b8',
             fontWeight: 700,
             fontSize: '0.85rem',
             cursor: isBalanced ? 'pointer' : 'not-allowed',
-            opacity: isBalanced ? 1 : 0.5
+            boxShadow: isBalanced ? '0 2px 6px rgba(16, 185, 129, 0.3)' : 'none'
           }}
         >
-          <Play size={15} />
+          <Play size={15} fill={isBalanced ? '#ffffff' : 'none'} />
           <span>Play Puzzle</span>
         </button>
       </header>
@@ -421,9 +432,9 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
         className="mobile-editor-tabs"
         style={{
           display: 'none',
-          background: 'rgba(15, 23, 42, 0.95)',
+          background: '#ffffff',
           padding: '6px 12px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          borderBottom: '1px solid #e2e8f0',
           justifyContent: 'center',
           gap: '8px'
         }}
@@ -431,12 +442,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
         <button
           onClick={() => setMobileTab('grid')}
           style={{
-            padding: '5px 14px',
-            borderRadius: '6px',
-            background: mobileTab === 'grid' ? '#6366f1' : 'rgba(255, 255, 255, 0.06)',
-            color: '#fff',
+            padding: '6px 14px',
+            borderRadius: '8px',
+            background: mobileTab === 'grid' ? '#4f46e5' : '#f1f5f9',
+            border: mobileTab === 'grid' ? '1px solid #4338ca' : '1px solid #e2e8f0',
+            color: mobileTab === 'grid' ? '#ffffff' : '#475569',
             fontWeight: 600,
-            fontSize: '0.8rem'
+            fontSize: '0.82rem',
+            cursor: 'pointer'
           }}
         >
           Grid
@@ -444,12 +457,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
         <button
           onClick={() => setMobileTab('regions')}
           style={{
-            padding: '5px 14px',
-            borderRadius: '6px',
-            background: mobileTab === 'regions' ? '#6366f1' : 'rgba(255, 255, 255, 0.06)',
-            color: '#fff',
+            padding: '6px 14px',
+            borderRadius: '8px',
+            background: mobileTab === 'regions' ? '#4f46e5' : '#f1f5f9',
+            border: mobileTab === 'regions' ? '1px solid #4338ca' : '1px solid #e2e8f0',
+            color: mobileTab === 'regions' ? '#ffffff' : '#475569',
             fontWeight: 600,
-            fontSize: '0.8rem'
+            fontSize: '0.82rem',
+            cursor: 'pointer'
           }}
         >
           Regions ({regions.length})
@@ -457,12 +472,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
         <button
           onClick={() => setMobileTab('dominoes')}
           style={{
-            padding: '5px 14px',
-            borderRadius: '6px',
-            background: mobileTab === 'dominoes' ? '#6366f1' : 'rgba(255, 255, 255, 0.06)',
-            color: '#fff',
+            padding: '6px 14px',
+            borderRadius: '8px',
+            background: mobileTab === 'dominoes' ? '#4f46e5' : '#f1f5f9',
+            border: mobileTab === 'dominoes' ? '1px solid #4338ca' : '1px solid #e2e8f0',
+            color: mobileTab === 'dominoes' ? '#ffffff' : '#475569',
             fontWeight: 600,
-            fontSize: '0.8rem'
+            fontSize: '0.82rem',
+            cursor: 'pointer'
           }}
         >
           Dominoes ({dominoes.length})
@@ -476,36 +493,37 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
           className="editor-regions-sidebar"
           style={{
             width: '320px',
-            borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRight: '1px solid #e2e8f0',
             padding: '16px',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: '14px',
-            background: 'rgba(15, 23, 42, 0.5)'
+            background: '#ffffff'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Regions & Constraints</h3>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Regions & Constraints</h3>
             <button
               onClick={handleAddRegion}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '4px 10px',
+                padding: '5px 12px',
                 borderRadius: '6px',
-                background: '#6366f1',
-                color: '#fff',
+                background: '#4f46e5',
+                color: '#ffffff',
                 fontSize: '0.8rem',
-                fontWeight: 600
+                fontWeight: 600,
+                cursor: 'pointer'
               }}
             >
               <Plus size={14} /> Region
             </button>
           </div>
 
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '0.78rem', color: '#64748b' }}>
             Select a region below, then click playable cells on the board to add or remove them.
           </p>
 
@@ -519,8 +537,8 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                   style={{
                     padding: '10px',
                     borderRadius: '8px',
-                    background: isActive ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.03)',
-                    border: `1px solid ${isActive ? '#6366f1' : 'rgba(255, 255, 255, 0.08)'}`,
+                    background: isActive ? '#eef2ff' : '#f8fafc',
+                    border: `1.5px solid ${isActive ? '#6366f1' : '#e2e8f0'}`,
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -536,9 +554,9 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                           const val = e.target.value;
                           setRegions(prev => prev.map(r => r.id === reg.id ? { ...r, color: val } : r));
                         }}
-                        style={{ width: '22px', height: '22px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        style={{ width: '22px', height: '22px', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
                         {reg.cellIds.length} cells
                       </span>
                     </div>
@@ -548,9 +566,19 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                         e.stopPropagation();
                         handleDeleteRegion(reg.id);
                       }}
-                      style={{ background: 'transparent', color: '#f87171', padding: '2px' }}
+                      style={{
+                        background: '#fee2e2',
+                        border: '1px solid #fecaca',
+                        color: '#dc2626',
+                        borderRadius: '6px',
+                        padding: '3px 6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                      }}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
 
@@ -570,12 +598,13 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                         setRegions(prev => prev.map(r => r.id === reg.id ? { ...r, constraint: newConstraint } : r));
                       }}
                       style={{
-                        background: 'rgba(0, 0, 0, 0.4)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
                         borderRadius: '6px',
                         padding: '4px 8px',
                         fontSize: '0.8rem',
-                        color: '#ffffff'
+                        color: '#0f172a',
+                        fontWeight: 600
                       }}
                     >
                       <option value="none">No constraint</option>
@@ -601,12 +630,13 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                         }}
                         style={{
                           width: '56px',
-                          background: 'rgba(0, 0, 0, 0.4)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
                           borderRadius: '6px',
                           padding: '4px 6px',
                           fontSize: '0.8rem',
-                          color: '#ffffff'
+                          color: '#0f172a',
+                          fontWeight: 700
                         }}
                       />
                     )}
@@ -626,7 +656,8 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             flexDirection: 'column',
             alignItems: 'center',
             padding: '20px',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            background: '#f8fafc'
           }}
         >
           {/* Grid size controls */}
@@ -637,37 +668,41 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               alignItems: 'center',
               marginBottom: '16px',
               padding: '8px 16px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              borderRadius: '8px'
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+              flexWrap: 'wrap',
+              justifyContent: 'center'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-              <span>Rows:</span>
+              <span style={{ color: '#334155', fontWeight: 600 }}>Rows:</span>
               <button
                 onClick={() => setRows(Math.max(2, rows - 1))}
-                style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}
+                style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
               >-</button>
-              <span style={{ fontWeight: 700 }}>{rows}</span>
+              <span style={{ fontWeight: 700, minWidth: '18px', textAlign: 'center', color: '#0f172a' }}>{rows}</span>
               <button
                 onClick={() => setRows(Math.min(10, rows + 1))}
-                style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}
+                style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
               >+</button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-              <span>Cols:</span>
+              <span style={{ color: '#334155', fontWeight: 600 }}>Cols:</span>
               <button
                 onClick={() => setCols(Math.max(2, cols - 1))}
-                style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}
+                style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
               >-</button>
-              <span style={{ fontWeight: 700 }}>{cols}</span>
+              <span style={{ fontWeight: 700, minWidth: '18px', textAlign: 'center', color: '#0f172a' }}>{cols}</span>
               <button
                 onClick={() => setCols(Math.min(10, cols + 1))}
-                style={{ padding: '2px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}
+                style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
               >+</button>
             </div>
 
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
               Right-click cell to toggle playable / hole. Left-click to assign region.
             </span>
           </div>
@@ -680,9 +715,10 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               gridTemplateRows: `repeat(${rows}, 54px)`,
               gap: '4px',
               padding: '16px',
-              background: 'rgba(0, 0, 0, 0.25)',
+              background: '#e2e8f0',
               borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.08)'
+              border: '1px solid #cbd5e1',
+              boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.05)'
             }}
           >
             {Array.from({ length: rows }).map((_, r) =>
@@ -709,10 +745,12 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       width: '54px',
                       height: '54px',
                       borderRadius: '8px',
-                      border: isPlayable ? `2px solid ${reg ? reg.color : '#64748b'}` : '1px dashed rgba(255, 255, 255, 0.1)',
+                      border: isPlayable
+                        ? reg ? `2.5px solid ${reg.color}` : '2px solid #94a3b8'
+                        : '1px dashed #94a3b8',
                       background: isPlayable
-                        ? reg ? `${reg.color}40` : 'rgba(255, 255, 255, 0.06)'
-                        : 'rgba(0, 0, 0, 0.3)',
+                        ? reg ? `${reg.color}25` : '#ffffff'
+                        : '#cbd5e1',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -720,7 +758,8 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       cursor: 'pointer',
                       fontSize: '0.7rem',
                       fontWeight: 600,
-                      color: isPlayable ? '#ffffff' : 'rgba(255, 255, 255, 0.2)'
+                      color: isPlayable ? '#0f172a' : '#64748b',
+                      boxShadow: isPlayable ? '0 1px 2px rgba(0,0,0,0.08)' : 'none'
                     }}
                     title={isPlayable ? `Playable cell (${r}, ${c})` : 'Hole (click to enable)'}
                   >
@@ -746,17 +785,17 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
           className="editor-dominoes-sidebar"
           style={{
             width: '320px',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            borderLeft: '1px solid #e2e8f0',
             padding: '16px',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: '14px',
-            background: 'rgba(15, 23, 42, 0.5)'
+            background: '#ffffff'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
               Dominoes ({dominoes.length})
             </h3>
             <button
@@ -765,12 +804,13 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '4px 10px',
+                padding: '5px 12px',
                 borderRadius: '6px',
-                background: '#6366f1',
-                color: '#fff',
+                background: '#4f46e5',
+                color: '#ffffff',
                 fontSize: '0.8rem',
-                fontWeight: 600
+                fontWeight: 600,
+                cursor: 'pointer'
               }}
             >
               <Plus size={14} /> Domino
@@ -787,11 +827,11 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                   justifyContent: 'space-between',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)'
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0'
                 }}
               >
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>
                   #{idx + 1}
                 </span>
 
@@ -803,18 +843,18 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       setDominoes(prev => prev.map(item => item.id === d.id ? { ...item, a: val } : item));
                     }}
                     style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
                       borderRadius: '4px',
                       padding: '2px 6px',
                       fontWeight: 700,
-                      color: '#ffffff'
+                      color: '#0f172a'
                     }}
                   >
                     {[0, 1, 2, 3, 4, 5, 6].map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
 
-                  <span style={{ color: 'var(--text-dim)' }}>|</span>
+                  <span style={{ color: '#cbd5e1' }}>|</span>
 
                   <select
                     value={d.b}
@@ -823,12 +863,12 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       setDominoes(prev => prev.map(item => item.id === d.id ? { ...item, b: val } : item));
                     }}
                     style={{
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
                       borderRadius: '4px',
                       padding: '2px 6px',
                       fontWeight: 700,
-                      color: '#ffffff'
+                      color: '#0f172a'
                     }}
                   >
                     {[0, 1, 2, 3, 4, 5, 6].map(v => <option key={v} value={v}>{v}</option>)}
@@ -840,11 +880,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       setDominoes(prev => prev.map(item => item.id === d.id ? { ...item, a: d.b, b: d.a } : item));
                     }}
                     style={{
-                      fontSize: '0.7rem',
-                      padding: '2px 6px',
+                      fontSize: '0.72rem',
+                      padding: '3px 8px',
                       borderRadius: '4px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      color: 'var(--text-muted)'
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      color: '#334155',
+                      fontWeight: 600,
+                      cursor: 'pointer'
                     }}
                     title="Swap values"
                   >
@@ -854,9 +897,19 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
 
                 <button
                   onClick={() => handleDeleteDomino(d.id)}
-                  style={{ background: 'transparent', color: '#f87171', padding: '2px' }}
+                  style={{
+                    background: '#fee2e2',
+                    border: '1px solid #fecaca',
+                    color: '#dc2626',
+                    borderRadius: '6px',
+                    padding: '3px 6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </button>
               </div>
             ))}

@@ -3,7 +3,10 @@ import { DominoDefinition, DominoRotationState } from '../../domain/domino';
 import { Domino } from '../Domino/Domino';
 
 interface DominoTrayProps {
-  unusedDominoes: DominoDefinition[];
+  dominoes?: DominoDefinition[];
+  unusedDominoes?: DominoDefinition[];
+  placedDominoIds?: Set<string>;
+  draggingDominoId?: string | null;
   totalDominoCount?: number;
   dominoRotations: Record<string, DominoRotationState>;
   onDominoClick: (dominoId: string) => void;
@@ -13,7 +16,10 @@ interface DominoTrayProps {
 }
 
 export const DominoTray: React.FC<DominoTrayProps> = ({
+  dominoes,
   unusedDominoes,
+  placedDominoIds,
+  draggingDominoId,
   totalDominoCount,
   dominoRotations,
   onDominoClick,
@@ -21,8 +27,17 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
   selectedDominoId,
   className = ''
 }) => {
+  const allDominoes = dominoes ?? unusedDominoes ?? [];
+  const placedSet =
+    placedDominoIds ??
+    new Set(
+      unusedDominoes
+        ? allDominoes.filter((d) => !unusedDominoes.some((u) => u.id === d.id)).map((d) => d.id)
+        : []
+    );
+
   // Constant sizing based on total puzzle domino count
-  const count = totalDominoCount ?? unusedDominoes.length;
+  const count = totalDominoCount ?? allDominoes.length;
   const isLarge = count > 10;
   const isMedium = count > 6;
   const trayCellSize = isLarge ? 34 : isMedium ? 38 : 42;
@@ -67,69 +82,64 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
           overflow: 'visible'
         }}
       >
-        {unusedDominoes.length === 0 ? (
-          <div
-            style={{
-              color: 'var(--text-dim)',
-              fontSize: '0.84rem',
-              fontStyle: 'italic',
-              padding: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: `${expectedContentHeight}px`
-            }}
-          >
-            All dominoes have been placed on the board!
-          </div>
-        ) : (
-          unusedDominoes.map((domino) => {
-            const rot = dominoRotations[domino.id] ?? 0;
-            const isSelected = selectedDominoId === domino.id;
-            const isVertical = rot % 2 !== 0;
+        {allDominoes.map((domino) => {
+          const isPlaced = placedSet.has(domino.id);
+          const isDragging = draggingDominoId === domino.id;
+          const rot = dominoRotations[domino.id] ?? 0;
+          const isSelected = selectedDominoId === domino.id;
+          const isVertical = rot % 2 !== 0;
 
-            return (
+          return (
+            <div
+              key={domino.id}
+              className={`tray-domino-slot ${isPlaced ? 'slot-empty' : ''}`}
+              style={{
+                position: 'relative',
+                width: `${slotWidth}px`,
+                height: `${slotHeight}px`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                cursor: isPlaced ? 'default' : 'grab'
+              }}
+              onPointerDown={(e) => {
+                if (!isPlaced) {
+                  onDominoPointerDown(e, domino.id, false);
+                }
+              }}
+              onClick={() => {
+                if (!isPlaced) {
+                  onDominoClick(domino.id);
+                }
+              }}
+            >
+              {/* Horizontal slot placeholder box (matches game1.jpg) */}
               <div
-                key={domino.id}
-                className="tray-domino-slot"
+                className="slot-placeholder"
                 style={{
-                  position: 'relative',
-                  width: `${slotWidth}px`,
-                  height: `${slotHeight}px`,
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '8px',
+                  background: '#f8fafc',
+                  border: '1.5px solid #e2e8f0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0,
-                  cursor: 'grab'
+                  pointerEvents: 'none'
                 }}
-                onPointerDown={(e) => onDominoPointerDown(e, domino.id, false)}
-                onClick={() => onDominoClick(domino.id)}
               >
-                {/* Horizontal slot placeholder box (matches game1.jpg) */}
                 <div
-                  className="slot-placeholder"
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: '8px',
-                    background: '#f8fafc',
-                    border: '1.5px solid #e2e8f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pointerEvents: 'none'
+                    width: '1px',
+                    height: '60%',
+                    background: '#cbd5e1'
                   }}
-                >
-                  <div
-                    style={{
-                      width: '1px',
-                      height: '60%',
-                      background: '#cbd5e1'
-                    }}
-                  />
-                </div>
+                />
+              </div>
 
-                {/* Domino tile (semi-transparent when rotated vertical) */}
+              {/* Domino tile (rendered only if not placed on the board) */}
+              {!isPlaced && (
                 <div
                   className="tray-domino-item"
                   style={{
@@ -142,7 +152,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
                     borderRadius: '8px',
                     background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
                     border: isSelected ? '1.5px solid #6366f1' : '1.5px solid transparent',
-                    opacity: isVertical ? 0.82 : 1,
+                    opacity: isDragging ? 0 : isVertical ? 0.82 : 1,
                     filter: isVertical
                       ? 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28))'
                       : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.10))',
@@ -157,10 +167,10 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
                     ariaSelected={isSelected}
                   />
                 </div>
-              </div>
-            );
-          })
-        )}
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

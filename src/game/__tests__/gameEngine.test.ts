@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canPlaceDomino, getBoardValues, placeDomino, removeDomino, rotateDomino } from '../../domain/placement';
+import { canPlaceDomino, DominoPlacement, getBoardValues, placeDomino, removeDomino, rotateDomino } from '../../domain/placement';
 import { Puzzle } from '../../domain/puzzle';
 import {
   SAMPLE_PUZZLE,
@@ -442,4 +442,48 @@ describe('Pips Game Engine and Placement Logic', () => {
     const postTick = tickTimer(state, 3000);
     expect(postTick.elapsedMs).toBe(state.elapsedMs);
   });
+
+  // 31. evaluatePostMoveState transitions to solved or repair appropriately
+  it('31. evaluatePostMoveState evaluates solved and repair states', () => {
+    let state = initGameState(puzzle);
+    // Partially placed
+    state = placeDominoOnBoard(state, 'd_0_1', '0,0', '0,1', 0).nextState;
+    expect(state.solved).toBe(false);
+    expect(state.validationMode).toBe('normal');
+
+    // Place all winning pieces
+    for (const p of SAMPLE_PUZZLE_SOLUTION) {
+      state = placeDominoOnBoard(state, p.dominoId, p.cellA, p.cellB, p.rotation).nextState;
+    }
+    expect(state.solved).toBe(true);
+    expect(state.timerRunning).toBe(false);
+  });
+
+  // 32. rotating placed domino always pivots around the top square
+  it('32. rotating placed domino always pivots around the top square', () => {
+    const d1 = puzzle.dominoes[0];
+    const initialH: DominoPlacement[] = [{
+      dominoId: d1.id,
+      cellA: '0,6',
+      cellB: '0,7',
+      orientation: 'horizontal',
+      reversed: false,
+      rotation: 0
+    }];
+    const resV = rotateDomino(puzzle, initialH, d1.id);
+    expect(resV.success).toBe(true);
+    // Pivots around top square (0,6): points Down to (1,6)
+    expect(resV.placements[0].cellA).toBe('0,6');
+    expect(resV.placements[0].cellB).toBe('1,6');
+    expect(resV.placements[0].rotation).toBe(1);
+
+    const resH = rotateDomino(puzzle, resV.placements, d1.id);
+    expect(resH.success).toBe(true);
+    // Pivots around top square (0,6): points Left to (0,5)
+    expect(resH.placements[0].cellA).toBe('0,6');
+    expect(resH.placements[0].cellB).toBe('0,5');
+    expect(resH.placements[0].rotation).toBe(2);
+  });
 });
+
+

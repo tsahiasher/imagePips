@@ -1,5 +1,5 @@
-import { DominoDefinition, DominoRotationState, getRotationDetails, rotateClockwise } from './domino';
-import { CellId, Puzzle, areCellsAdjacent, getCellById } from './puzzle';
+import { DominoDefinition, DominoRotationState, getRotationDetails } from './domino';
+import { CellId, Puzzle, areCellsAdjacent, getCellById, makeCellId, parseCellId } from './puzzle';
 
 export interface DominoPlacement {
   dominoId: string;
@@ -79,40 +79,29 @@ export function removeDomino(
 export function getCellsForAnchorAndRotation(
   puzzle: Puzzle,
   anchorCellId: CellId,
-  rotation: DominoRotationState
+  rotation: DominoRotationState,
+  reversedAnchor: boolean = false
 ): { cellA: CellId; cellB: CellId } | null {
-  const anchor = getCellById(puzzle, anchorCellId);
-  if (!anchor) return null;
+  const anchor = parseCellId(anchorCellId);
+  if (isNaN(anchor.row) || isNaN(anchor.col)) return null;
 
-  let rA = anchor.row;
-  let cA = anchor.col;
-  let rB = anchor.row;
-  let cB = anchor.col;
+  // Clockwise step around anchor: 0: Right, 1: Down, 2: Left, 3: Up
+  const step = !reversedAnchor ? rotation : ((rotation + 2) % 4);
 
-  // 0: [A | B]  -> anchor is A, B is to right
-  // 1: [A] / [B]-> anchor is A, B is below
-  // 2: [B | A]  -> anchor is B, A is to right
-  // 3: [B] / [A]-> anchor is B, A is below
-  switch (rotation) {
-    case 0:
-      cB = anchor.col + 1;
-      break;
-    case 1:
-      rB = anchor.row + 1;
-      break;
-    case 2:
-      cA = anchor.col + 1;
-      break;
-    case 3:
-      rA = anchor.row + 1;
-      break;
-  }
+  let otherRow = anchor.row;
+  let otherCol = anchor.col;
+  if (step === 0) otherCol += 1;
+  else if (step === 1) otherRow += 1;
+  else if (step === 2) otherCol -= 1;
+  else if (step === 3) otherRow -= 1;
 
-  const foundA = puzzle.cells.find((c) => c.row === rA && c.col === cA);
-  const foundB = puzzle.cells.find((c) => c.row === rB && c.col === cB);
+  const foundOther = puzzle.cells.find((c) => c.row === otherRow && c.col === otherCol);
+  const foundAnchor = puzzle.cells.find((c) => c.row === anchor.row && c.col === anchor.col);
+  if (!foundOther || !foundAnchor) return null;
 
-  if (!foundA || !foundB) return null;
-  return { cellA: foundA.id, cellB: foundB.id };
+  return !reversedAnchor
+    ? { cellA: foundAnchor.id, cellB: foundOther.id }
+    : { cellA: foundOther.id, cellB: foundAnchor.id };
 }
 
 /**
@@ -131,33 +120,40 @@ export function rotateDomino(
   const domino = puzzle.dominoes.find((d) => d.id === dominoId);
   if (!domino) return { success: false, placements: currentPlacements };
 
-  const nextRotation = rotateClockwise(existing.rotation);
+  const parsedA = parseCellId(existing.cellA);
+  const parsedB = parseCellId(existing.cellB);
+  const topSquareRow = Math.min(parsedA.row, parsedB.row);
+  const topSquareCol = Math.min(parsedA.col, parsedB.col);
+  const topCellId = makeCellId(topSquareRow, topSquareCol);
+  const reversedAnchor = existing.cellB === topCellId;
+
+  const otherParsed = existing.cellA === topCellId ? parsedB : parsedA;
+  let currentStep = 0;
+  if (otherParsed.col === topSquareCol + 1) currentStep = 0;
+  else if (otherParsed.row === topSquareRow + 1) currentStep = 1;
+  else if (otherParsed.col === topSquareCol - 1) currentStep = 2;
+  else if (otherParsed.row === topSquareRow - 1) currentStep = 3;
+
+  const nextStep = (currentStep + 1) % 4;
+  const nextRotation: DominoRotationState = !reversedAnchor
+    ? (nextStep as DominoRotationState)
+    : (((nextStep + 2) % 4) as DominoRotationState);
   const { orientation, reversed } = getRotationDetails(nextRotation);
 
-  // Try rotating around cellA first, then cellB
-  const candidates: Array<{ cellA: CellId; cellB: CellId }> = [];
-
-  const anchorACells = getCellsForAnchorAndRotation(puzzle, existing.cellA, nextRotation);
-  if (anchorACells) candidates.push(anchorACells);
-
-  const anchorBCells = getCellsForAnchorAndRotation(puzzle, existing.cellB, nextRotation);
-  if (anchorBCells) candidates.push(anchorBCells);
-
-  for (const cand of candidates) {
-    if (canPlaceDomino(puzzle, currentPlacements, domino, cand.cellA, cand.cellB)) {
-      const updated: DominoPlacement = {
-        dominoId,
-        cellA: cand.cellA,
-        cellB: cand.cellB,
-        orientation,
-        reversed,
-        rotation: nextRotation
-      };
-      return {
-        success: true,
-        placements: placeDomino(currentPlacements, updated)
-      };
-    }
+  const anchorCells = getCellsForAnchorAndRotation(puzzle, topCellId, nextRotation, reversedAnchor);
+  if (anchorCells && canPlaceDomino(puzzle, currentPlacements, domino, anchorCells.cellA, anchorCells.cellB)) {
+    const updated: DominoPlacement = {
+      dominoId,
+      cellA: anchorCells.cellA,
+      cellB: anchorCells.cellB,
+      orientation,
+      reversed,
+      rotation: nextRotation
+    };
+    return {
+      success: true,
+      placements: placeDomino(currentPlacements, updated)
+    };
   }
 
   return { success: false, placements: currentPlacements };

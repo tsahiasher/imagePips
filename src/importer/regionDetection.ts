@@ -1,5 +1,6 @@
 import { Region } from '../domain/puzzle';
 import { DetectedCellCandidate, ImageDataLike } from './types';
+import { isImportDebugEnabled } from './debugConfig';
 
 function parseHex(hex: string): { r: number; g: number; b: number } {
   const num = parseInt(hex.replace('#', ''), 16);
@@ -101,11 +102,13 @@ function hasDashedBorderBetween(
   // If horizontally adjacent, border is vertical (vary y)
   // If vertically adjacent, border is horizontal (vary x)
   const isHoriz = c1.row === c2.row;
-  const span = Math.round((isHoriz ? c1.height : c1.width) * 0.22);
-  const normalSearch = Math.round((isHoriz ? c1.width : c1.height) * 0.12);
+  // Keep span focused on the middle 40% of the shared edge to avoid outer corner/perimeter bleeding
+  const span = Math.round((isHoriz ? c1.height : c1.width) * 0.20);
+  // Keep perpendicular search tightly bounded to the seam
+  const normalSearch = Math.round((isHoriz ? c1.width : c1.height) * 0.06);
 
   // Search perpendicular to the boundary across a range of normal offsets
-  for (let norm = -normalSearch; norm <= normalSearch; norm += 4) {
+  for (let norm = -normalSearch; norm <= normalSearch; norm += 3) {
     let dashPixels = 0;
     for (let d = -span; d <= span; d += 2) {
       const sx = isHoriz ? mx + norm : mx + d;
@@ -124,7 +127,8 @@ function hasDashedBorderBetween(
         }
       }
     }
-    if (dashPixels >= 7) {
+    // Genuine dividing dashed boundaries have sustained dash pixels; noise or anti-aliasing does not
+    if (dashPixels >= 14) {
       return true;
     }
   }
@@ -172,6 +176,12 @@ export function detectRegions(
           const snap1 = snapToVibrantPalette(current.colorHex);
           const snap2 = snapToVibrantPalette(neighbor.colorHex);
           const hasBorder = hasDashedBorderBetween(current, neighbor, image);
+
+          if (isImportDebugEnabled()) {
+            console.log(
+              `[DEBUG REGION MERGE] ${current.id} (${snap1}, raw: ${current.colorHex}) <-> ${neighbor.id} (${snap2}, raw: ${neighbor.colorHex}): hasBorder=${hasBorder}, merged=${snap1 === snap2 && !hasBorder}`
+            );
+          }
 
           // Cells share region only if snapped colors match and no dashed dividing boundary
           if (snap1 === snap2 && !hasBorder) {

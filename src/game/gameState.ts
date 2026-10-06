@@ -60,7 +60,7 @@ export function initGameState(puzzle: Puzzle, savedState?: Partial<GameState>): 
 /**
  * Start timer on first player action if not already running.
  */
-function ensureTimerStarted(state: GameState, now: number): GameState {
+export function ensureTimerStarted(state: GameState, now: number): GameState {
   if (state.solved) return state;
   if (!state.timerStarted) {
     return {
@@ -199,7 +199,7 @@ export function returnDominoToTray(
 /**
  * Evaluates completion and repair mode after any board change.
  */
-function evaluatePostMoveState(state: GameState): GameState {
+export function evaluatePostMoveState(state: GameState): GameState {
   const { solved, allDominoesPlaced } = isPuzzleSolved(state.puzzle, state.placements);
 
   if (solved) {

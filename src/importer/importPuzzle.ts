@@ -8,6 +8,7 @@ import { estimateGrid } from './gridDetection';
 import { loadImageFromSource } from './loadImage';
 import { detectRegions } from './regionDetection';
 import { ImportDebugData, ImportValidationResult } from './types';
+import { isImportDebugEnabled } from './debugConfig';
 
 export interface ImportProgressUpdate {
   stage: string;
@@ -71,6 +72,12 @@ export function validateImportResult(
     warnings.push(
       `${unconstrainedRegions.length} region(s) have unknown/missing constraints and require verification.`
     );
+    if (!isImportDebugEnabled() && typeof window !== 'undefined') {
+      console.info(
+        '%c[Hint] An imported region is missing a condition badge. Run `enableImportDebug()` in the console or add `?debug=true` to the URL to view diagnostic logs.',
+        'color: #0284c7; font-style: italic;'
+      );
+    }
   }
 
   return {
@@ -159,6 +166,12 @@ export async function importPuzzleFromImage(
   };
 
   const validation = validateImportResult(playableCells.length, dominoCount, puzzle);
+
+  if (isImportDebugEnabled()) {
+    console.log(
+      `[DEBUG IMPORT COMPLETE] Image: ${width}x${height}, Tray Dominoes: ${dominoCount}, Playable Cells: ${playableCells.length}, Regions: ${updatedRegions.length}, Accepted Badges: ${acceptedBadges.length}, Valid: ${validation.valid}`
+    );
+  }
 
   const debugData: ImportDebugData = {
     sessionId: activeSessionId,

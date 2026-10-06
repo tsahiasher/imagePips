@@ -8,6 +8,8 @@ interface DominoProps {
   cellSize: number; // Base cell dimension in pixels (e.g., 60-80px)
   isDragging?: boolean;
   isGhost?: boolean;
+  isPlaced?: boolean;
+  isSelected?: boolean;
   onPointerDown?: (e: React.PointerEvent) => void;
   onClick?: (e: React.MouseEvent) => void;
   ariaSelected?: boolean;
@@ -21,6 +23,8 @@ export const Domino: React.FC<DominoProps> = ({
   cellSize,
   isDragging = false,
   isGhost = false,
+  isPlaced = false,
+  isSelected = false,
   onPointerDown,
   onClick,
   ariaSelected = false,
@@ -46,6 +50,26 @@ export const Domino: React.FC<DominoProps> = ({
 
   const ariaLabel = `Domino ${domino.a} and ${domino.b}, ${orientation}${reversed ? ' reversed' : ''}`;
 
+  let strokeColor = ariaSelected ? '#6366f1' : '#334155';
+  let strokeWidth = ariaSelected ? 2.5 : 1.4;
+  let opacity = 1;
+
+  if (isGhost) {
+    opacity = 0.6;
+  } else if (isPlaced) {
+    if (isSelected) {
+      // Selected placed domino: 75% transparency, thinner black edge
+      opacity = 0.75;
+      strokeColor = '#000000';
+      strokeWidth = 0.6;
+    } else {
+      // Settled placed domino: 60% transparent, thin black edge
+      opacity = 0.6;
+      strokeColor = '#000000';
+      strokeWidth = 1;
+    }
+  }
+
   return (
     <svg
       width={width}
@@ -59,15 +83,17 @@ export const Domino: React.FC<DominoProps> = ({
         cursor: isDragging ? 'grabbing' : 'grab',
         filter: isDragging
           ? 'drop-shadow(0 14px 16px rgba(0,0,0,0.5))'
+          : isPlaced
+          ? 'none'
           : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-        opacity: isGhost ? 0.6 : 1,
-        transition: isDragging ? 'none' : 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        opacity,
+        transition: isDragging ? 'none' : 'opacity 0.15s ease, transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
         ...style
       }}
       role="button"
       tabIndex={0}
       aria-label={ariaLabel}
-      aria-selected={ariaSelected}
+      aria-selected={ariaSelected || isSelected}
       onPointerDown={onPointerDown}
       onClick={onClick}
     >
@@ -80,23 +106,25 @@ export const Domino: React.FC<DominoProps> = ({
         rx={rx}
         ry={rx}
         fill="#ffffff"
-        stroke={ariaSelected ? '#6366f1' : '#334155'}
-        strokeWidth={ariaSelected ? 2.5 : 1.4}
+        stroke={strokeColor}
+        strokeWidth={strokeWidth}
       />
 
-      {/* Internal subtle bevel / inset highlight */}
-      <rect
-        x={2}
-        y={2}
-        width={width - 4}
-        height={height - 4}
-        rx={rx - 1}
-        ry={rx - 1}
-        fill="none"
-        stroke="rgba(255, 255, 255, 0.7)"
-        strokeWidth={1}
-        pointerEvents="none"
-      />
+      {/* Internal subtle bevel / inset highlight (only when unplaced in tray/dragging) */}
+      {!isPlaced && (
+        <rect
+          x={2}
+          y={2}
+          width={width - 4}
+          height={height - 4}
+          rx={rx - 1}
+          ry={rx - 1}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.7)"
+          strokeWidth={1}
+          pointerEvents="none"
+        />
+      )}
 
       {/* Center divider line */}
       {isHorizontal ? (
