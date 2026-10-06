@@ -109,7 +109,9 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         alignItems: 'center',
         width: '100%',
         maxWidth: '100%',
-        overflow: 'visible'
+        height: '100%',
+        maxHeight: '100%',
+        overflow: 'hidden'
       }}
     >
       <svg
@@ -118,7 +120,8 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         width="100%"
         height="100%"
         style={{
-          maxHeight: '68vh',
+          maxHeight: '100%',
+          maxWidth: '100%',
           display: 'block',
           touchAction: 'none',
           userSelect: 'none'

@@ -1,5 +1,13 @@
 # Progress Log
 
+**2026-10-06 — Android system navigation bar clearance & dynamic viewport fix (offline code + tests + build + deploy). ✅ DONE**
+- Raised mobile tray clearance to `paddingBottom: max(84px, calc(env(safe-area-inset-bottom, 0px) + 76px))` ensuring the bottom row of 3 dominoes is lifted completely clear of the Android 3-button control bar.
+- Replaced `100vh` with `100dvh` on `.play-screen-root` so mobile browser address/navigation chrome does not push bottom screen content under the device buttons.
+- Updated SVG puzzle board scaling to fit within available `<main>` height dynamically without pushing the tray downward.
+- Fine-tuned `trayCellSize` to 30px for >10 dominoes, maintaining constant size regardless of dominoes placed.
+- Files touched: `src/components/DominoTray/DominoTray.tsx`, `src/components/PlayScreen/PlayScreen.tsx`, `src/components/PuzzleBoard/PuzzleBoard.tsx`, `src/index.css`, `docs/PROGRESS.md`.
+- Proof: 43 tests passed (`npm test`), production build passed (`npm run build`), Firebase deployment verified live.
+
 **2026-10-06 — Mobile tray elevation, persistent domino sizing, and README example update (offline code + tests + docs + deploy). ✅ DONE**
 - Lifted domino tray above mobile bottom navigation bar with safe-area padding (`paddingBottom: max(36px, env(safe-area-inset-bottom, 32px))`).
 - Fixed domino sizing so pieces no longer shrink/grow dynamically when dominoes are dropped, basing size on total puzzle domino capacity.

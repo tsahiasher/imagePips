@@ -79,8 +79,10 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100dvh',
+        maxHeight: '100dvh',
         width: '100vw',
+        maxWidth: '100vw',
         overflow: 'hidden',
         position: 'relative'
       }}

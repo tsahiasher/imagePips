@@ -23,17 +23,17 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
 }) => {
   // Size remains constant based on total puzzle domino count, not shrinking/growing as pieces are placed
   const count = totalDominoCount ?? unusedDominoes.length;
-  const trayCellSize = count > 10 ? 32 : count > 6 ? 36 : 42;
+  const trayCellSize = count > 10 ? 30 : count > 6 ? 35 : 42;
 
   return (
     <div
       className={`domino-tray-wrapper ${className}`}
       style={{
         width: '100%',
-        paddingTop: '14px',
+        paddingTop: '12px',
         paddingLeft: '12px',
         paddingRight: '12px',
-        paddingBottom: 'max(36px, env(safe-area-inset-bottom, 32px))',
+        paddingBottom: 'max(84px, calc(env(safe-area-inset-bottom, 0px) + 76px))',
         background: 'rgba(15, 23, 42, 0.85)',
         backdropFilter: 'blur(12px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
