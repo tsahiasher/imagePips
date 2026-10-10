@@ -1,5 +1,50 @@
 # Progress Log
 
+**2026-10-10 — Desktop PC screenshot support & resolution/aspect-ratio independence (game5.jpg). ✅ DONE**
+- Resolved all recognition issues on PC browser screen captures like `game5.jpg` (827x981, aspect ratio 0.84, no mobile status bar/chrome, board starts at y=24).
+- Key improvements:
+  1. **Dynamic vertical band analysis in `gameAreaDetection.ts`**:
+     - Removed hardcoded percentage splits (`height * 0.20`, `height * 0.67`) that assumed phone status bars and chopped off rows 0 and 1 on PC captures.
+     - Detects contiguous vertical content spans (`rowDensity >= 0.04 * width`, bridging gaps <= 12px).
+     - Identifies the puzzle board as the primary high-density span (largest vertical extent, roughly square/rectangular) and the domino tray as the content spans below the board.
+  2. **Color-constrained connected-components clustering in `badgeDetection.ts`**:
+     - Previously, saturated badge pixels of different colors (e.g. pink, teal) were connected across cells when touching saturated dark/orange inter-region boundary lines on lower-resolution captures, merging adjacent badges into wide non-square components.
+     - Added neighbor color-distance constraint (`cDist < 75`) during BFS so badges of different colors or touching border fragments never merge.
+     - Replaced hardcoded badge dimension thresholds (`bw < 35 || bh < 35`) and hardcoded crop boxes (`56x56`) with scale-relative dimensions (`minDim = Math.min(35, Math.round(cellSize * 0.35))`, `cropRadius = Math.round(Math.max(bw, bh) * 0.45)`).
+  3. **Scale-invariant token classification in `tokenRecognition.ts`**:
+     - Replaced absolute pixel thresholds (`glyphW <= 17`, `botP <= 8`, `leftMaxCol >= 17`, `rightMaxCol >= 18`) with scale-invariant ratios:
+       - Digit `1`: Aspect ratio `glyphW / glyphH < 0.58` (reliably differentiates narrow digits from standard digits regardless of resolution).
+       - Digit `7`: `topP >= 0.70 * W && botP <= 0.40 * W`.
+       - Digit `0` vs `6` vs `8`: Middle-third waist crossbar and vertical tunnel density; upper-right wall check for `6` vs `8`.
+       - Digit `2` vs `3`: Baseline coverage (`botP >= 0.70 * W`) combined with lower-mid quadrant balance (`rightMid <= 1.85 * leftMid`), cleanly separating diagonal-stroke `2`s from right-loop `3`s.
+       - Digit `5` vs `3`: Upper-right cavity check (`ur_pixels <= 0.30 * urBoxArea`) and upper-left stroke dominance.
+       - Multi-character tokens: Normalized height thresholds (`leftMaxCol >= 0.65 * leftH`, `rightMaxCol >= 0.65 * rightH`).
+- Added golden regression suite in `src/importer/__tests__/game5Regression.test.ts` verifying all 32 condition badges, 16 dominoes, 32 cells, and 32 regions match ground truth with 0 validation errors.
+- Files touched: `src/importer/gameAreaDetection.ts`, `src/importer/badgeDetection.ts`, `src/importer/tokenRecognition.ts`, `src/importer/__tests__/game5Regression.test.ts`, `docs/DECISIONS.md`, `docs/PROGRESS.md`.
+- Proof: All 47 vitest tests passing across all 5 test suites (`game1.jpg`, `game2.jpg`, `game3.jpg`, `game4.jpg`, `game5.jpg`), local Vite dev server running on `http://localhost:5174/`.
+
+**2026-10-10 — Single-digit condition badge recognition fix for game4.jpg (digits 0–8). ✅ DONE**
+- Resolved condition badge recognition errors on `game4.jpg` where single digits `1, 3, 4, 6` were misrecognized as `2, 8, 5`, and single digit `0` on rows 1 and 3 was misrecognized as `8` in browser canvas decoding.
+- Root cause:
+  1. `src/importer/tokenRecognition.ts` previously lacked rules for `1, 3, 4, 6`. Digit `1`'s bottom serif triggered `botP >= 0.75 * W` for `2`, while `3, 4, 6` defaulted to `8` or `5`.
+  2. Digit `0` detection relied on strict 5x5 center-box hole check (`centerHolePixels === 0`) and equator cross width cutoff (`equatorCrossCount <= 0.65 * W`). In browser canvas rendering (where antialiasing softens edges and slightly broadens lines), `0` missed this check and fell directly into the `6 vs 8` branch, which matched all criteria for `8`.
+- Unified enclosed-loop digit recognition (`0`, `6`, `8`):
+  - `0`, `6`, and `8` all share an enclosed lower loop and continuous left vertical wall (`maxConsecutiveEmptyLeft <= 1`).
+  - Differentiated `0` from `6` and `8` via vertical waist tunnel analysis across the middle third (`y in 0.35..0.65 * H, x in cX ± 1`):
+    - `0` has a hollow central vertical tunnel with no horizontal junction crossbar (`centerTunnelPixels <= 3`).
+    - `6` and `8` both have a solid horizontal waist/junction crossbar (`centerTunnelPixels >= 4`).
+    - `8` is distinguished from `6` by the upper-right loop wall (`upperRightPixels >= 3`), whereas `6` is open on the upper-right (`upperRightPixels < 3`).
+- Single-digit topological classifier hierarchy:
+  - `1`: Narrow width / aspect ratio (`glyphW <= 17 || glyphW / glyphH < 0.65`).
+  - `7`: Solid top horizontal bar with narrow bottom point (`topP >= 0.70 * W && botP <= 8`).
+  - `4`: Prominent mid-lower horizontal crossbar spanning >= 80% around 60%–70% height with empty lower-left and single vertical stem (`botP <= 0.45 * W`).
+  - `0`, `6`, `8`: Enclosed-loop digits distinguished by waist crossbar tunnel density (`0` vs `6/8`) and upper-right wall presence (`6` vs `8`).
+  - `2`: Solid flat horizontal baseline spanning >= 75% of width.
+  - `5` vs `3`: `5` has strong vertical stroke in upper-left quadrant (`upperLeftP >= 8`) and open upper-right, whereas `3` has open upper-left quadrant and curved loop in upper-right (`upperRightP >= 8`).
+- Added formal golden regression test in `src/importer/__tests__/game4Regression.test.ts` verifying all 32 condition badges and puzzle invariants on `game4.jpg`.
+- Files touched: `src/importer/tokenRecognition.ts`, `src/importer/__tests__/game4Regression.test.ts`, `docs/DECISIONS.md`, `docs/PROGRESS.md`.
+- Proof: All 46 vitest tests passing (`npx vitest run`) across all 4 game test suites (`game1.jpg`, `game2.jpg`, `game3.jpg`, `game4.jpg`), production build passing, local Vite dev server running on `http://localhost:5174/`.
+
 **2026-10-06 — Toggleable import diagnostics, fixed-slot domino tray layout, and README polish. ✅ DONE**
 - Implemented configurable runtime import diagnostics in `src/importer/debugConfig.ts`, `badgeDetection.ts`, `regionDetection.ts`, and `importPuzzle.ts`. Can be toggled on/off at will via `enableImportDebug()` / `disableImportDebug()` in the browser DevTools console, `localStorage.DEBUG_IMPORT = 'true'`, or `?debug=true` in the URL. Produces zero console output when off.
 - Updated `DominoTray.tsx` and `PlayScreen.tsx` to maintain a completely fixed, stable layout for all dominoes:

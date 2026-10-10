@@ -31,30 +31,92 @@ export function detectGameAreas(image: ImageDataLike): GameAreas {
     rowDensity[y] = nonWhiteCount;
   }
 
-  // Board typically occupies upper-middle area (e.g. 20% to 68% height)
-  // Tray typically occupies lower area (e.g. 68% to 98% height)
-  const midSplit = Math.floor(height * 0.67);
+  // Dynamically find content spans without hardcoded phone chrome assumptions.
+  // The board is the largest contiguous high-density vertical block.
+  // The tray is the content area below the board.
+  const thresh = width * 0.04;
+  const isDense = new Uint8Array(height);
+  for (let y = 0; y < height; y++) {
+    if (rowDensity[y] >= thresh) {
+      isDense[y] = 1;
+    }
+  }
 
-  // Find board vertical extent
+  // Bridge small gaps (<= 12px)
+  const bridged = new Uint8Array(isDense);
+  let gap = 0;
+  for (let y = 0; y < height; y++) {
+    if (bridged[y] === 0) {
+      gap++;
+    } else {
+      if (gap > 0 && gap <= 12) {
+        for (let gy = y - gap; gy < y; gy++) {
+          bridged[gy] = 1;
+        }
+      }
+      gap = 0;
+    }
+  }
+
+  // Find contiguous spans in bridged
+  interface VerticalSpan {
+    startY: number;
+    endY: number;
+    height: number;
+  }
+  const spans: VerticalSpan[] = [];
+  let inSpan = false;
+  let spanStart = 0;
+  for (let y = 0; y < height; y++) {
+    if (bridged[y] === 1 && !inSpan) {
+      inSpan = true;
+      spanStart = y;
+    } else if (bridged[y] === 0 && inSpan) {
+      inSpan = false;
+      spans.push({ startY: spanStart, endY: y - 1, height: y - spanStart });
+    }
+  }
+  if (inSpan) {
+    spans.push({ startY: spanStart, endY: height - 1, height: height - spanStart });
+  }
+
+  // The board is the span with the largest height
   let boardMinY = Math.floor(height * 0.20);
-  let boardMaxY = midSplit;
+  let boardMaxY = Math.floor(height * 0.65);
+  if (spans.length > 0) {
+    let maxH = -1;
+    let bestSpan = spans[0];
+    for (const s of spans) {
+      if (s.height > maxH) {
+        maxH = s.height;
+        bestSpan = s;
+      }
+    }
+    boardMinY = bestSpan.startY;
+    boardMaxY = bestSpan.endY;
 
-  while (boardMinY < midSplit && rowDensity[boardMinY] < width * 0.04) {
-    boardMinY++;
-  }
-  while (boardMaxY > boardMinY && rowDensity[boardMaxY] < width * 0.04) {
-    boardMaxY--;
+    // Refine board boundaries using rowDensity
+    while (boardMinY < boardMaxY && rowDensity[boardMinY] < thresh) {
+      boardMinY++;
+    }
+    while (boardMaxY > boardMinY && rowDensity[boardMaxY] < thresh) {
+      boardMaxY--;
+    }
   }
 
-  // Find tray vertical extent
-  let trayMinY = midSplit;
-  let trayMaxY = Math.floor(height * 0.98);
-
-  while (trayMinY < trayMaxY && rowDensity[trayMinY] < width * 0.04) {
-    trayMinY++;
-  }
-  while (trayMaxY > trayMinY && rowDensity[trayMaxY] < width * 0.04) {
-    trayMaxY--;
+  // Find tray vertical extent below the board
+  let trayMinY = boardMaxY + 20;
+  let trayMaxY = height - 20;
+  const traySpans = spans.filter((s) => s.startY > boardMaxY && s.height >= 20);
+  if (traySpans.length > 0) {
+    trayMinY = traySpans[0].startY;
+    const lastSpan = traySpans[traySpans.length - 1];
+    // Exclude phone home indicator bar if near the very bottom and short (height < 50px)
+    if (traySpans.length > 1 && lastSpan.height < 50 && lastSpan.endY > height - 100) {
+      trayMaxY = traySpans[traySpans.length - 2].endY;
+    } else {
+      trayMaxY = lastSpan.endY;
+    }
   }
 
   // Find horizontal extent for board

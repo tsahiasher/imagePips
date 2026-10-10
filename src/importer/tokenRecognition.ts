@@ -75,11 +75,12 @@ export function recognizeBadgeToken(
 
   const rx = ((badgeWidth ?? 80) / 2) * 0.82;
   const ry = ((badgeHeight ?? 80) / 2) * 0.82;
+  const cropRadius = Math.round(Math.max(rx, ry) * 1.1);
 
-  for (let dy = -26; dy <= 26; dy++) {
+  for (let dy = -cropRadius; dy <= cropRadius; dy++) {
     const sy = startY + cy + dy;
     if (sy < 0) continue;
-    for (let dx = -26; dx <= 26; dx++) {
+    for (let dx = -cropRadius; dx <= cropRadius; dx++) {
       // Diamond equation: (|dx| / rx + |dy| / ry) <= 0.88
       if (Math.abs(dx) / rx + Math.abs(dy) / ry > 0.88) continue;
 
@@ -137,45 +138,177 @@ export function recognizeBadgeToken(
 
   // 2. Single digit (aspect ratio w / h < 1.05)
   if (glyphW / glyphH < 1.05) {
+    // 2.1. Digit '1': narrow aspect ratio
+    if (glyphW / glyphH < 0.58) {
+      return { token: '1', constraint: { type: 'sum', value: 1 }, confidence: 0.98 };
+    }
+
+    // Top and bottom row pixel counts
     let topP = 0, botP = 0;
     for (let x = minX; x <= maxX; x++) {
       if (ptsSet.has(`${x},${minY}`) || ptsSet.has(`${x},${minY + 1}`)) topP++;
       if (ptsSet.has(`${x},${maxY}`) || ptsSet.has(`${x},${maxY - 1}`)) botP++;
     }
 
-    // '7': solid top horizontal bar, narrow bottom point
-    if (topP >= glyphW * 0.70 && botP <= 8) {
+    // 2.2. Digit '7': solid top horizontal bar, narrow bottom point
+    if (topP >= glyphW * 0.70 && botP <= glyphW * 0.40) {
       return { token: '7', constraint: { type: 'sum', value: 7 }, confidence: 0.98 };
     }
 
-    // '2': flat horizontal baseline spanning >= 75%
-    if (botP >= glyphW * 0.75) {
-      return { token: '2', constraint: { type: 'sum', value: 2 }, confidence: 0.98 };
+    // 2.3. Digit '4': horizontal crossbar spanning >= 80% around 60%-70% height,
+    // and bottom is only the right vertical stem (lower-left is empty).
+    const yCrossStart = minY + Math.floor(glyphH * 0.58);
+    const yCrossEnd = minY + Math.floor(glyphH * 0.72);
+    let maxCrossSpan = 0;
+    for (let y = yCrossStart; y <= yCrossEnd; y++) {
+      let span = 0;
+      for (let x = minX; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) span++;
+      }
+      if (span > maxCrossSpan) maxCrossSpan = span;
     }
 
-    // '0': central hollow hole
-    const cX = Math.floor((minX + maxX) / 2);
-    const cY = Math.floor((minY + maxY) / 2);
-    let centerHolePixels = 0;
-    for (let dy = -2; dy <= 2; dy++) {
-      for (let dx = -2; dx <= 2; dx++) {
-        if (ptsSet.has(`${cX + dx},${cY + dy}`)) centerHolePixels++;
+    let lowerLeftPixels = 0;
+    for (let y = maxY - 2; y <= maxY; y++) {
+      for (let x = minX; x <= minX + Math.floor(glyphW * 0.40); x++) {
+        if (ptsSet.has(`${x},${y}`)) lowerLeftPixels++;
       }
     }
-    if (centerHolePixels === 0) {
+
+    if (maxCrossSpan >= glyphW * 0.80 && lowerLeftPixels === 0 && botP <= glyphW * 0.45) {
+      return { token: '4', constraint: { type: 'sum', value: 4 }, confidence: 0.98 };
+    }
+
+    // Wall and cavity checks
+    const cX = Math.floor((minX + maxX) / 2);
+    const leftMargin = Math.max(1, Math.round(glyphW * 0.28));
+
+    // Continuous left wall in middle: y between 0.30*H and 0.70*H
+    const yLeftStart = minY + Math.floor(glyphH * 0.30);
+    const yLeftEnd = minY + Math.floor(glyphH * 0.70);
+    let maxConsecutiveEmptyLeft = 0;
+    let currEmptyLeft = 0;
+    for (let y = yLeftStart; y <= yLeftEnd; y++) {
+      let hasLeft = false;
+      for (let x = minX; x <= minX + leftMargin; x++) {
+        if (ptsSet.has(`${x},${y}`)) hasLeft = true;
+      }
+      if (!hasLeft) {
+        currEmptyLeft++;
+        if (currEmptyLeft > maxConsecutiveEmptyLeft) maxConsecutiveEmptyLeft = currEmptyLeft;
+      } else {
+        currEmptyLeft = 0;
+      }
+    }
+
+    // Continuous right wall in middle: y between 0.30*H and 0.70*H
+    let maxConsecutiveEmptyRight = 0;
+    let currEmptyRight = 0;
+    for (let y = yLeftStart; y <= yLeftEnd; y++) {
+      let hasRight = false;
+      for (let x = maxX - leftMargin; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) hasRight = true;
+      }
+      if (!hasRight) {
+        currEmptyRight++;
+        if (currEmptyRight > maxConsecutiveEmptyRight) maxConsecutiveEmptyRight = currEmptyRight;
+      } else {
+        currEmptyRight = 0;
+      }
+    }
+
+    // Waist crossbar span in middle third (y between 0.40*H and 0.60*H)
+    const yMidStart = minY + Math.floor(glyphH * 0.40);
+    const yMidEnd = minY + Math.floor(glyphH * 0.60);
+    let maxWaistSpan = 0;
+    let centerTunnelPixels = 0;
+    for (let y = yMidStart; y <= yMidEnd; y++) {
+      let span = 0;
+      for (let x = minX; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) span++;
+      }
+      if (span > maxWaistSpan) maxWaistSpan = span;
+      for (let x = cX - 1; x <= cX + 1; x++) {
+        if (ptsSet.has(`${x},${y}`)) centerTunnelPixels++;
+      }
+    }
+
+    // 2.4. '0': both left and right walls continuous, but center tunnel is hollow
+    if (
+      maxConsecutiveEmptyLeft <= 1 &&
+      maxConsecutiveEmptyRight <= 1 &&
+      centerTunnelPixels <= Math.max(2, Math.round((yMidEnd - yMidStart + 1) * 0.4))
+    ) {
       return { token: '0', constraint: { type: 'sum', value: 0 }, confidence: 0.98 };
     }
 
-    // '8' vs '5': '8' has upper-right loop wall, '5' has empty upper-right
-    const yUpper = minY + Math.floor(glyphH * 0.25);
-    let hasUpperRight = false;
-    for (let x = maxX - 4; x <= maxX; x++) {
-      if (ptsSet.has(`${x},${yUpper}`)) hasUpperRight = true;
+    // 2.5. '6' vs '8': left wall is continuous, waist crossbar is solid
+    if (maxConsecutiveEmptyLeft <= 1 && maxWaistSpan >= glyphW * 0.60) {
+      const yUR1 = minY + Math.floor(glyphH * 0.22);
+      const yUR2 = minY + Math.floor(glyphH * 0.42);
+      const xRight = maxX - Math.max(1, Math.round(glyphW * 0.25));
+      let urPixels = 0;
+      for (let y = yUR1; y <= yUR2; y++) {
+        for (let x = xRight; x <= maxX; x++) {
+          if (ptsSet.has(`${x},${y}`)) urPixels++;
+        }
+      }
+      const urBoxArea = (yUR2 - yUR1 + 1) * (maxX - xRight + 1);
+      if (urPixels >= urBoxArea * 0.35) {
+        return { token: '8', constraint: { type: 'sum', value: 8 }, confidence: 0.98 };
+      } else {
+        return { token: '6', constraint: { type: 'sum', value: 6 }, confidence: 0.98 };
+      }
     }
-    if (hasUpperRight) {
-      return { token: '8', constraint: { type: 'sum', value: 8 }, confidence: 0.97 };
+
+    // 2.6. '2': flat horizontal baseline (botP >= 70%) AND not a '3' lower loop
+    const yLM1 = minY + Math.floor(glyphH * 0.60);
+    const yLM2 = minY + Math.floor(glyphH * 0.78);
+    let leftMid = 0;
+    let rightMid = 0;
+    for (let y = yLM1; y <= yLM2; y++) {
+      for (let x = minX; x < cX; x++) {
+        if (ptsSet.has(`${x},${y}`)) leftMid++;
+      }
+      for (let x = cX + 1; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) rightMid++;
+      }
+    }
+
+    if (botP >= glyphW * 0.70 && rightMid <= leftMid * 1.85) {
+      return { token: '2', constraint: { type: 'sum', value: 2 }, confidence: 0.98 };
+    }
+
+    // 2.7. '5' vs '3':
+    // '5' has empty upper-right, whereas '3' has filled upper-right
+    const yUR1 = minY + Math.floor(glyphH * 0.22);
+    const yUR2 = minY + Math.floor(glyphH * 0.42);
+    const xRight = maxX - Math.max(1, Math.round(glyphW * 0.25));
+    let urPixels = 0;
+    for (let y = yUR1; y <= yUR2; y++) {
+      for (let x = xRight; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) urPixels++;
+      }
+    }
+    const urBoxArea = (yUR2 - yUR1 + 1) * (maxX - xRight + 1);
+
+    const yUp1 = minY + Math.floor(glyphH * 0.20);
+    const yUp2 = minY + Math.floor(glyphH * 0.40);
+    let upLeft = 0;
+    let upRight = 0;
+    for (let y = yUp1; y <= yUp2; y++) {
+      for (let x = minX; x <= minX + leftMargin; x++) {
+        if (ptsSet.has(`${x},${y}`)) upLeft++;
+      }
+      for (let x = maxX - leftMargin; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) upRight++;
+      }
+    }
+
+    if (upLeft > upRight || urPixels <= urBoxArea * 0.30) {
+      return { token: '5', constraint: { type: 'sum', value: 5 }, confidence: 0.98 };
     } else {
-      return { token: '5', constraint: { type: 'sum', value: 5 }, confidence: 0.97 };
+      return { token: '3', constraint: { type: 'sum', value: 3 }, confidence: 0.98 };
     }
   }
 
@@ -237,7 +370,7 @@ export function recognizeBadgeToken(
   }
 
   let leftChar = '';
-  if (leftMaxCol >= 17) {
+  if (leftMaxCol >= leftH * 0.65) {
     // Digit '1' or '2'
     // '2' (in '24') has upper-right loop at y = leftMinY + 0.25 * leftH
     const yUpper = leftMinY + Math.floor(leftH * 0.25);
@@ -319,7 +452,7 @@ export function recognizeBadgeToken(
 
   let rightChar = '';
   // 1. '1' (in '11'): narrow width, solid column
-  if (rightW <= 15 && rightMaxCol >= 18) {
+  if (rightW / rightH < 0.60 && rightMaxCol >= rightH * 0.65) {
     rightChar = '1';
   }
   // 2. '7' (in '<7'): solid top bar, narrow bottom point

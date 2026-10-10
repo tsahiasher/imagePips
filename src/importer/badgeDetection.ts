@@ -179,12 +179,24 @@ export function detectConditionBadges(
             { nx: qx, ny: qy - 1 }
           ];
 
+          const curOrigIdx = ((startY + qy) * imgW + (startX + qx)) * 4;
+          const curR = data[curOrigIdx];
+          const curG = data[curOrigIdx + 1];
+          const curB = data[curOrigIdx + 2];
+
           for (const n of neighbors) {
             if (n.nx >= 0 && n.nx < scanW && n.ny >= 0 && n.ny < scanH) {
               const nIdx = n.ny * scanW + n.nx;
               if (mask[nIdx] === 1 && visited[nIdx] === 0) {
-                visited[nIdx] = 1;
-                queue.push({ qx: n.nx, qy: n.ny });
+                const nOrigIdx = ((startY + n.ny) * imgW + (startX + n.nx)) * 4;
+                const nR = data[nOrigIdx];
+                const nG = data[nOrigIdx + 1];
+                const nB = data[nOrigIdx + 2];
+                const cDist = Math.sqrt((curR - nR) ** 2 + (curG - nG) ** 2 + (curB - nB) ** 2);
+                if (cDist < 75) {
+                  visited[nIdx] = 1;
+                  queue.push({ qx: n.nx, qy: n.ny });
+                }
               }
             }
           }
@@ -221,11 +233,12 @@ export function detectConditionBadges(
 
     // Reject small dashed border fragments (typically < 300 pixels)
     const minBadgePixels = Math.min(1200, Math.round(grid.cellSize * grid.cellSize * 0.10));
+    const minDim = Math.min(35, Math.round(grid.cellSize * 0.35));
     if (comp.pixelCount < minBadgePixels) {
       rejectionReason = `Border fragment / noise (only ${comp.pixelCount}px, expected >${minBadgePixels}px)`;
     } else if (comp.pixelCount > 12000) {
       rejectionReason = `Too large for badge (${comp.pixelCount}px)`;
-    } else if (bw < 35 || bh < 35) {
+    } else if (bw < minDim || bh < minDim) {
       rejectionReason = `Too small dimensions (${bw}x${bh}px)`;
     } else if (aspect < 0.60 || aspect > 1.65) {
       rejectionReason = `Non-square aspect ratio (${aspect.toFixed(2)})`;
@@ -236,11 +249,12 @@ export function detectConditionBadges(
     const rawColorHex = `#${toHex(comp.avgR)}${toHex(comp.avgG)}${toHex(comp.avgB)}`;
     const colorHex = snapToVibrantPalette(rawColorHex);
 
+    const cropRadius = Math.round(Math.max(bw, bh) * 0.45);
     const cropBox: BoundingBox = {
-      x: comp.cx - 28,
-      y: comp.cy - 28,
-      width: 56,
-      height: 56
+      x: comp.cx - cropRadius,
+      y: comp.cy - cropRadius,
+      width: cropRadius * 2,
+      height: cropRadius * 2
     };
 
     const tokenResult = recognizeBadgeToken(image, cropBox, bw, bh);
