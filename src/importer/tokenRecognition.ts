@@ -261,7 +261,49 @@ export function recognizeBadgeToken(
       }
     }
 
-    // 2.6. '2': flat horizontal baseline (botP >= 70%) AND not a '3' lower loop
+    // 2.6. '9': enclosed upper loop, solid waist crossbar, solid right vertical stem, and empty lower-left
+    const yU1 = minY + Math.floor(glyphH * 0.20);
+    const yU2 = minY + Math.floor(glyphH * 0.40);
+    let upLoopLeft = 0;
+    let upLoopRight = 0;
+    let upLoopCenterHole = 0;
+    for (let y = yU1; y <= yU2; y++) {
+      for (let x = minX; x <= minX + leftMargin; x++) {
+        if (ptsSet.has(`${x},${y}`)) upLoopLeft++;
+      }
+      for (let x = maxX - leftMargin; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) upLoopRight++;
+      }
+      for (let x = cX - 1; x <= cX + 1; x++) {
+        if (ptsSet.has(`${x},${y}`)) upLoopCenterHole++;
+      }
+    }
+
+    const yLL1 = minY + Math.floor(glyphH * 0.60);
+    const yLL2 = minY + Math.floor(glyphH * 0.78);
+    let lowerLeftStem = 0;
+    let lowerRightStem = 0;
+    for (let y = yLL1; y <= yLL2; y++) {
+      for (let x = minX; x <= minX + leftMargin; x++) {
+        if (ptsSet.has(`${x},${y}`)) lowerLeftStem++;
+      }
+      for (let x = maxX - leftMargin; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) lowerRightStem++;
+      }
+    }
+
+    if (
+      upLoopLeft >= glyphH * 0.35 &&
+      upLoopRight >= glyphH * 0.35 &&
+      upLoopCenterHole <= Math.max(2, Math.round((yU2 - yU1 + 1) * 0.35)) &&
+      maxWaistSpan >= glyphW * 0.65 &&
+      lowerRightStem >= glyphH * 0.35 &&
+      lowerLeftStem <= lowerRightStem * 0.35
+    ) {
+      return { token: '9', constraint: { type: 'sum', value: 9 }, confidence: 0.98 };
+    }
+
+    // 2.7. '2': flat horizontal baseline (botP >= 70%) AND not a '3' lower loop
     const yLM1 = minY + Math.floor(glyphH * 0.60);
     const yLM2 = minY + Math.floor(glyphH * 0.78);
     let leftMid = 0;
@@ -371,12 +413,16 @@ export function recognizeBadgeToken(
 
   let leftChar = '';
   if (leftMaxCol >= leftH * 0.65) {
-    // Digit '1' or '2'
-    // '2' (in '24') has upper-right loop at y = leftMinY + 0.25 * leftH
+    // Digit '1' vs '2' (e.g. '10', '11', '12' vs '24')
+    // In '2', the upper-right loop extends to the very right edge (leftMaxX) at yUpper.
+    // In '1', the vertical stem is centered and does not reach leftMaxX at yUpper (only the bottom foot reaches leftMaxX).
     const yUpper = leftMinY + Math.floor(leftH * 0.25);
+    const rightMargin = Math.max(1, Math.floor(leftW * 0.15));
     let hasUpperRight = false;
-    for (let x = leftMaxX - 3; x <= leftMaxX; x++) {
-      if (ptsSet.has(`${x},${yUpper}`)) hasUpperRight = true;
+    for (let y = yUpper - 1; y <= yUpper + 1; y++) {
+      for (let x = leftMaxX - rightMargin + 1; x <= leftMaxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) hasUpperRight = true;
+      }
     }
     if (hasUpperRight) {
       leftChar = '2';

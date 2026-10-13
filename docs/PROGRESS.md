@@ -1,5 +1,23 @@
 # Progress Log
 
+**2026-10-13 — Single-digit 9 recognition and multi-character 10/11/12 token resolution for game6.jpg (Android & Firefox). ✅ DONE**
+- Resolved condition badge recognition error in `game6.jpg` where the orange badge at (527, 910) (1 column before the right edge, 1 row before the bottom) representing `9` was reconstructed as `5`.
+- Root causes & fixes:
+  1. **Topological single-digit `9` classifier in `src/importer/tokenRecognition.ts`**:
+     - Previously, the single-digit classifier had no rule for digit `9`. It bypassed `0, 6, 8` because `maxConsecutiveEmptyLeft >= 3` in the lower half; bypassed `2` because lower-right stem outweighed lower-left; and then fell into the `5 vs 3` heuristic where `upLeft > upRight` incorrectly returned `'5'`.
+     - Implemented topological recognition for `9`:
+       - Enclosed upper loop: continuous left and right boundaries across the upper third (`upLoopLeft >= 0.35 * H`, `upLoopRight >= 0.35 * H`) with hollow cavity in the upper-mid center (`upLoopCenterHole <= 0.35 * waistBox`).
+       - Solid horizontal waist crossbar (`maxWaistSpan >= 0.65 * W`).
+       - Solid lower-right vertical stem (`lowerRightStem >= 0.35 * H`).
+       - Empty lower-left quadrant (`lowerLeftStem <= 0.35 * lowerRightStem`).
+  2. **Scale-invariant multi-character left digit classifier (`1` vs `2`)**:
+     - In `game6.jpg`, Badge 6 (`10`) was previously at risk of misclassifying as `20` because `leftMaxX - 3` tested pixels 3px from the right edge, which in lower-resolution glyphs hit the central stem of `1`.
+     - Replaced with scale-invariant `leftMaxX` margin check at `yUpper = 0.25 * leftH`, testing whether the glyph curve reaches the rightmost boundary `leftMaxX`. For digit `2`, the top-right loop reaches `leftMaxX`, while for digit `1`, the upper stem is centered and does not reach `leftMaxX`.
+     - Verified across all multi-character badges in `game1.jpg` (`11`, `24`), `game2.jpg` (`12`, `10`), `game3.jpg` (`10`), and `game6.jpg` (`10`).
+- Added formal golden regression test in `src/importer/__tests__/game6Regression.test.ts` verifying all 30 condition badges, 16 dominoes, 32 cells, and 30 regions on `game6.jpg`.
+- Files touched: `src/importer/tokenRecognition.ts`, `src/importer/__tests__/game6Regression.test.ts`, `game6.jpg`, `docs/DECISIONS.md`, `docs/PROGRESS.md`.
+- Proof: All 48 vitest tests passing across all 10 test files (`npx vitest run`), production build passing (`npm run build`), local Vite dev server running on `http://localhost:5173/`.
+
 **2026-10-10 — Desktop PC screenshot support & resolution/aspect-ratio independence (game5.jpg). ✅ DONE**
 - Resolved all recognition issues on PC browser screen captures like `game5.jpg` (827x981, aspect ratio 0.84, no mobile status bar/chrome, board starts at y=24).
 - Key improvements:
