@@ -68,6 +68,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
         return; // Ignore stale result from cancelled or superseded session
       }
 
+      (window as any).__lastImportResult = { puzzle, debugData };
       onPuzzleReady(puzzle, debugData.sourceImageUrl);
     } catch (err) {
       if (currentSessionIdRef.current !== sessionId) return;

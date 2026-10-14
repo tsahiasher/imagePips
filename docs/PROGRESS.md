@@ -1,5 +1,32 @@
 # Progress Log
 
+**2026-10-14 — Multi-part puzzle reconstruction, unequal ('≠') badge rule, and robust chevron / 1 vs 2 / 8 vs 9 recognition (game7.jpg & game8.jpg). ✅ DONE**
+- Supported puzzles with multiple disconnected sub-boards (e.g. 3 sub-boards in `game7.jpg` and `game8.jpg`) and unequal ('≠') region condition badges across mobile and desktop browser captures (Chrome, Firefox, Android).
+- Resolved recognition discrepancies in `game8.jpg`:
+  1. **Unequal badge ('≠')**: Identified by dual horizontal bars with diagonal slash extending above top and below bottom bars, creating a distinct `{ type: 'different' }` constraint ensuring all cells in the region have distinct pip values.
+  2. **Scale-invariant chevrons ('<', '>')**: Uses topological apex and open-mouth detection at mid-height (`midRightPixels === 0` for `<`, `midLeftPixels === 0` for `>`), preventing chevrons from being misrecognized as digits `1` or `2` (`<3` previously turning into `13` or `23`, and `>7` turning into `27`).
+  3. **Multi-character `1` vs `2` (`14` vs `24`)**: Differentiates digit `1`'s continuous vertical stem (`leftMaxCol / leftH > 0.82`) from digit `2`'s flat horizontal baseline without continuous vertical stem (`leftMaxCol / leftH <= 0.82 && leftBotP >= leftW * 0.55 && leftW / leftH >= 0.60`).
+  4. **Single-digit `8` vs `9`**: Differentiates the continuous lower-left loop wall of `8` from the open gap of `9` across rows `0.60..0.75 * H` where `9` has empty rows in the left third.
+  5. **Board area, grid, cell, and domino tray detection**: Adjusted detection thresholds and band extraction to reconstruct all 3 sub-boards (28 cells, 14 dominoes, 15 condition badges).
+- Files touched:
+  - `src/importer/badgeDetection.ts`
+  - `src/importer/cellDetection.ts`
+  - `src/importer/dominoDetection.ts`
+  - `src/importer/gameAreaDetection.ts`
+  - `src/importer/gridDetection.ts`
+  - `src/importer/pipDetection.ts`
+  - `src/importer/tokenRecognition.ts`
+  - `src/components/ImportScreen/ImportScreen.tsx`
+  - `game7.jpg`, `game8.jpg`
+  - `src/importer/__tests__/game7Regression.test.ts`
+  - `src/importer/__tests__/game8Regression.test.ts`
+  - `docs/DECISIONS.md`
+  - `docs/PROGRESS.md`
+- Proof:
+  - All 12 Vitest regression test suites passing (50 tests total).
+  - Verified live in Chrome browser via automated browser agent on `http://localhost:5173/`: all 15 badges in `game8.jpg` verified (`['0', '4', '≠', '>7', '=', '4', '=', '3', '9', '14', '<4', '<3', '>4', '6', '6']`).
+  - Production build passing (`npm run build`).
+
 **2026-10-13 — Single-digit 9 recognition and multi-character 10/11/12 token resolution for game6.jpg (Android & Firefox). ✅ DONE**
 - Resolved condition badge recognition error in `game6.jpg` where the orange badge at (527, 910) (1 column before the right edge, 1 row before the bottom) representing `9` was reconstructed as `5`.
 - Root causes & fixes:

@@ -95,6 +95,26 @@ export function detectGameAreas(image: ImageDataLike): GameAreas {
     boardMinY = bestSpan.startY;
     boardMaxY = bestSpan.endY;
 
+    // Merge adjacent board spans (for multi-part / segmented boards separated by empty grid rows)
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const s of spans) {
+        if (s.height >= height * 0.15) {
+          // Span above the board separated by a gap <= 4.5% of image height
+          if (s.endY < boardMinY && (boardMinY - s.endY) <= height * 0.045) {
+            boardMinY = s.startY;
+            changed = true;
+          }
+          // Span below the board separated by a gap <= 4.5% of image height
+          if (s.startY > boardMaxY && (s.startY - boardMaxY) <= height * 0.045) {
+            boardMaxY = s.endY;
+            changed = true;
+          }
+        }
+      }
+    }
+
     // Refine board boundaries using rowDensity
     while (boardMinY < boardMaxY && rowDensity[boardMinY] < thresh) {
       boardMinY++;

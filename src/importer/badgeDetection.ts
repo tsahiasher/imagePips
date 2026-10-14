@@ -280,13 +280,27 @@ export function detectConditionBadges(
     }
   }
 
-  // Sort accepted badges by Y, then X
-  acceptedBadges.sort((a, b) => {
-    const rowA = Math.floor(a.y / 60);
-    const rowB = Math.floor(b.y / 60);
-    if (rowA !== rowB) return rowA - rowB;
-    return a.x - b.x;
-  });
+  // Group accepted badges into rows by Y proximity (scale-invariant), then sort each row by X
+  acceptedBadges.sort((a, b) => a.y - b.y);
+  const badgeRows: DetectedBadgeCandidate[][] = [];
+  const maxRowDiff = Math.max(12, Math.round(grid.cellSize * 0.35));
+  for (const b of acceptedBadges) {
+    let placed = false;
+    for (const r of badgeRows) {
+      if (Math.abs(b.y - r[0].y) <= maxRowDiff) {
+        r.push(b);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      badgeRows.push([b]);
+    }
+  }
+  badgeRows.sort((r1, r2) => r1[0].y - r2[0].y);
+  const sortedBadges = badgeRows.flatMap(r => r.sort((a, b) => a.x - b.x));
+  acceptedBadges.length = 0;
+  acceptedBadges.push(...sortedBadges);
 
   acceptedBadges.forEach((b, idx) => {
     b.id = `badge_${idx + 1}`;

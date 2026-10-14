@@ -156,13 +156,17 @@ export function detectDominoesInTray(
 
     let rejectionReason: string | undefined;
 
-    if (box.width < 90 || box.width > 320) {
-      rejectionReason = `Invalid width (${box.width}px, expected 90-320px)`;
-    } else if (box.height < 45 || box.height > 180) {
-      rejectionReason = `Invalid height (${box.height}px, expected 45-180px)`;
+    const minW = Math.min(90, Math.round(imgW * 0.08));
+    const minH = Math.min(45, Math.round(imgH * 0.035));
+    const minPixels = Math.min(3000, Math.round(imgW * imgH * 0.0015));
+
+    if (box.width < minW || box.width > 320) {
+      rejectionReason = `Invalid width (${box.width}px, expected ${minW}-320px)`;
+    } else if (box.height < minH || box.height > 180) {
+      rejectionReason = `Invalid height (${box.height}px, expected ${minH}-180px)`;
     } else if (aspect < 1.3 || aspect > 2.8) {
       rejectionReason = `Invalid aspect ratio (${aspect.toFixed(2)}, expected ~2:1)`;
-    } else if (pixelCount < 3000) {
+    } else if (pixelCount < minPixels) {
       rejectionReason = `Insufficient pixel density (${pixelCount}px)`;
     }
 

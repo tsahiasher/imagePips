@@ -37,14 +37,14 @@ export function estimateGrid(
 
   let bestScore = -Infinity;
 
-  // Search candidate grid divisions (cols: 3 to 10, rows: 3 to 9)
+  // Search candidate grid divisions (cols: 3 to 10, rows: 3 to 10)
   for (let c = 3; c <= 10; c++) {
     const cellW = boardBox.width / c;
-    if (cellW < 55 || cellW > 220) continue;
+    if (cellW < 35 || cellW > 220) continue;
 
-    for (let r = 3; r <= 9; r++) {
+    for (let r = 3; r <= 10; r++) {
       const cellH = boardBox.height / r;
-      if (cellH < 55 || cellH > 220) continue;
+      if (cellH < 35 || cellH > 220) continue;
 
       // Aspect ratio of cells must be approximately 1:1 square
       const aspectDeviation = Math.abs(cellW - cellH) / cellW;
@@ -85,8 +85,12 @@ export function estimateGrid(
           const avgG = samples.reduce((acc, s) => acc + s.g, 0) / samples.length;
           const avgB = samples.reduce((acc, s) => acc + s.b, 0) / samples.length;
 
-          // Pure white background: avg values > 246
-          const isWhiteBackground = avgR > 246 && avgG > 246 && avgB > 246;
+          // Pure white background: high brightness and low saturation (matching cellDetection)
+          const maxVal = Math.max(avgR, avgG, avgB);
+          const minVal = Math.min(avgR, avgG, avgB);
+          const brightness = (avgR + avgG + avgB) / 3;
+          const saturation = maxVal > 0 ? (maxVal - minVal) / maxVal : 0;
+          const isWhiteBackground = brightness > 245 && saturation < 0.05;
           if (!isWhiteBackground) {
             playableCount++;
           }

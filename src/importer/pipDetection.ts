@@ -102,8 +102,9 @@ export function detectPipsInHalf(
         const aspect = bh > 0 ? bw / bh : 0;
         const radius = (bw + bh) / 4;
 
-        // Circular blob filtering
-        if (pixelCount >= 20 && pixelCount <= 550 && aspect >= 0.45 && aspect <= 2.2) {
+        // Circular blob filtering (proportional minimum for desktop screenshots)
+        const minPipPixels = Math.min(20, Math.max(10, Math.round(subW * subH * 0.015)));
+        if (pixelCount >= minPipPixels && pixelCount <= 550 && aspect >= 0.45 && aspect <= 2.2) {
           blobs.push({
             cx: x1 + insetX + Math.round(sumX / pixelCount),
             cy: y1 + insetY + Math.round(sumY / pixelCount),

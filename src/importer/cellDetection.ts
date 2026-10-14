@@ -34,16 +34,17 @@ export function detectGridCells(
       const cy = Math.round(cellTop + cellH * 0.40);
 
       // Sample a compact 9-point grid centered strictly within the cell core
+      const off = Math.max(2, Math.round(Math.min(cellW, cellH) * 0.08));
       const sampleOffsets = [
         [0, 0],
-        [-8, -8],
-        [8, -8],
-        [-8, 8],
-        [8, 8],
-        [-8, 0],
-        [8, 0],
-        [0, -8],
-        [0, 8]
+        [-off, -off],
+        [off, -off],
+        [-off, off],
+        [off, off],
+        [-off, 0],
+        [off, 0],
+        [0, -off],
+        [0, off]
       ];
 
       const samples: Array<{ r: number; g: number; b: number }> = [];
