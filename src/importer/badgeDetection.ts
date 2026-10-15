@@ -257,7 +257,7 @@ export function detectConditionBadges(
       height: cropRadius * 2
     };
 
-    const tokenResult = recognizeBadgeToken(image, cropBox, bw, bh);
+    const tokenResult = recognizeBadgeToken(image, cropBox, bw, bh, colorHex);
 
     const cand: DetectedBadgeCandidate = {
       id: `badge_cand_${i + 1}`,

@@ -1,5 +1,69 @@
 # Progress Log
 
+**2026-10-15 — Show test game buttons only in debug mode with flag debug=1. ✅ DONE**
+- Configured [ImportScreen.tsx](file:///c:/Zahi/image_pips/src/components/ImportScreen/ImportScreen.tsx) to conditionally render the `Test game1`..`Test game10` quick-test buttons only when the `debug=1` (or `debug=true`) query parameter is provided in the URL (e.g. `http://localhost:5173/?debug=1`).
+- Files touched:
+  - `src/components/ImportScreen/ImportScreen.tsx`
+  - `docs/PROGRESS.md`
+- Proof:
+  - Verified live in Chrome: at `http://localhost:5173/`, 0 test buttons are rendered (clean main page); at `http://localhost:5173/?debug=1`, all 10 test buttons are rendered and functional.
+  - All 14 Vitest suites (52 tests) passing.
+  - Production build passing cleanly (`npm run build`).
+
+**2026-10-15 — Fix Game 1 (24 vs >4), Game 2 (= vs 23), Game 8 (6 vs 3), and Game 9 (20 vs >0) in Chrome browser & Node. ✅ DONE**
+- Resolved 4 browser-specific condition badge misclassifications caused by subpixel Canvas antialiasing and image noise:
+  1. **Game 1 (`24` vs `>4`) & Game 9 (`20` vs `>0`)**:
+     - Root cause: In `tokenRecognition.ts`, `isChevronRight` checked mid-height pixel counts and vertical spans (`span25 >= span75`). When splitting multi-character glyphs `24` and `20`, digit `2`'s diagonal neck created rightward pixels at mid-height with empty left space, causing `isChevronRight` to trigger on digit `2` and turn `24` into `>4` and `20` into `>0`.
+     - Fix: Added `botRightPixels <= 1` constraint to `isChevronRight`. A chevron `>` angles down-left to `leftMinX` at the bottom and has zero bottom-right pixels, whereas digit `2` has a wide horizontal baseline extending across to `leftMaxX` with `botRightPixels >= 2`.
+  2. **Game 2 (`=` vs `23`)**:
+     - Root cause: Wide double-cell equal badge in Game 2 had width 70 and top/bottom bar spans of 36 pixels ($36 / 70 = 0.514$), which narrowly missed the previous `0.55 * glyphW` span threshold. When it failed the equal check, it fell through to multi-character splitting, classifying the left and right halves as `2` and `3`.
+     - Fix: Lowered bar span threshold for equal signs from `0.55` to `0.45 * glyphW` when an empty horizontal gap row (`minGapRowPixels <= 1`) spans the entire glyph.
+  3. **Game 8 (`6` vs `3`)**:
+     - Root cause: The small 36x36 teal badge at (428, 292) contained a 3-pixel isolated noise speck at rows 0-1 on the far left. This artificially shifted `minX` 7 columns to the left, causing `maxConsecutiveEmptyLeft` to evaluate to 6 and fail digit 6's left-wall continuity check, falling through to digit `3`.
+     - Fix: Added 8-connected component noise filtering in `tokenRecognition.ts` to discard isolated dust specks (< 5 pixels) when the main glyph component is $\ge 15$ pixels. The cleaned digit 6 now has continuous left wall ($emptyLeft = 0$) and recognizes accurately as `6`.
+  4. **Game 1 (`<5` vs `<9`)**:
+     - Root cause: In Chrome, antialiased top-bar pixels in `<5` touched `yUR1`, satisfying `hasUpperRight` and triggering digit 9's stroke ratio rule.
+     - Fix: Added `emptyUpperRightRows === 0` validation to digit 9. Digit 9's upper loop has a continuous right wall from top to waist, whereas digit 5 has an open cavity below the top horizontal bar with `emptyUpperRightRows >= 1`.
+- Files touched:
+  - `src/importer/tokenRecognition.ts`
+  - `golden_results/*.json`
+  - `docs/DECISIONS.md`
+  - `docs/PROGRESS.md`
+- Proof:
+  - 14 Vitest test suites passing (52 tests total, 0 regressions across all games).
+  - All 10 golden files generated and verified via `npm run save:goldens`.
+  - Verified live in Chrome browser via automated browser subagent at `http://localhost:5173/`:
+    - Game 1: `badge_10` shows `24`, `badge_12` shows `<5`.
+    - Game 2: middle teal badge shows `=`.
+    - Game 8: bottom section right badge shows `6`.
+    - Game 9: bottom right badge shows `20`.
+  - Production build passing cleanly (`npm run build`).
+
+**2026-10-15 — Fix game10 badge rules (>14, >9, >2, 9), Chrome browser antialiasing parity, and persistent golden test suites for all 10 games. ✅ DONE**
+- Resolved condition badge recognition and rendering issues in `game10.jpg`:
+  1. **3-character badge token `>14`**: Added multi-glyph sub-splitting for tokens where `(leftChar === '<' || leftChar === '>') && rightW / rightH >= 0.85`, separating tens digit `1` and ones digit `4` via column minima; adjusted SVG `<text>` sizing (`0.36 * size`, `-0.05em` letter-spacing) in `ConditionBadge.tsx` so `>14` fits with comfortable padding inside diamond badges.
+  2. **Color-aware text pixel extraction for orange badges**: White text antialiased against bright orange badges (#f97316) exhibits warm channel skew ($R \approx 255, G \approx 245, B \approx 210$, diff $\approx 45$). Added targeted condition `isOrangeBadge && r > 200 && g > 200 && b > 175 && diff < 55` without relaxing thresholds on green/blue/yellow badges, ensuring the chevron `>` is fully preserved in Chrome's canvas decompression.
+  3. **Right digit `9` recognition (`>9`)**: Added topological classification requiring continuous enclosed upper loop (`upLeft >= 8 && upLeft >= upRight * 0.65`), solid waist, empty lower-left row, and solid lower-right stem (`lowerRightStem >= 6`), distinguishing `9` from `5` and `3`.
+  4. **Right digit `2` vs `3` (`>2` vs `>3`)**: Formulated robust baseline density check (`botRowPixels >= 0.55 * W && midRatio <= 3.00`) to capture digit `2`'s flat horizontal bottom baseline even under antialiasing, cleanly distinguishing it from `3`'s curved bottom tip (`botRowPixels <= 0.50 * W`).
+  5. **Single digit `9` vs `8` / `6`**: Refined upper-left wall continuity and lower-left mouth gap checks, recognizing single digit `9` on bottom purple cells without false positives.
+  6. **Golden snapshot persistence**: Implemented `scripts/save_game_goldens.ts` and generated `golden_results/game1.json` through `golden_results/game10.json`, recording full validation, cell coordinates, dominoes, regions, constraints, and detected badges for future regression checking. Added `"save:goldens"` npm script.
+- Files touched:
+  - `src/importer/tokenRecognition.ts`
+  - `src/importer/badgeDetection.ts`
+  - `src/components/ConditionBadge/ConditionBadge.tsx`
+  - `src/components/ImportScreen/ImportScreen.tsx`
+  - `scripts/save_game_goldens.ts`
+  - `golden_results/game[1-10].json`
+  - `src/importer/__tests__/game9Regression.test.ts`
+  - `src/importer/__tests__/game10Regression.test.ts`
+  - `package.json`
+  - `docs/DECISIONS.md`
+  - `docs/PROGRESS.md`
+- Proof:
+  - 14 Vitest test suites passing (52 tests total, covering all games).
+  - Verified live in Chrome browser via automated browser subagent on `http://localhost:5173/`: all badges in `game10.jpg` verified (`['>1', '>0', '>3', '5', '=', '1', '>2', '>14', '9', '>9', '4']`).
+  - Production build passing cleanly (`npm run build`).
+
 **2026-10-14 — Multi-part puzzle reconstruction, unequal ('≠') badge rule, and robust chevron / 1 vs 2 / 8 vs 9 recognition (game7.jpg & game8.jpg). ✅ DONE**
 - Supported puzzles with multiple disconnected sub-boards (e.g. 3 sub-boards in `game7.jpg` and `game8.jpg`) and unequal ('≠') region condition badges across mobile and desktop browser captures (Chrome, Firefox, Android).
 - Resolved recognition discrepancies in `game8.jpg`:

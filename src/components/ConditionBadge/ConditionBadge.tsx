@@ -68,9 +68,10 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         fill="#ffffff"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={text.length >= 3 ? size * 0.42 : size * 0.48}
+        fontSize={text.length >= 3 ? size * 0.36 : size * 0.48}
         fontWeight="900"
         fontFamily="var(--font-sans), sans-serif"
+        letterSpacing={text.length >= 3 ? '-0.05em' : 'normal'}
         pointerEvents="none"
       >
         {text}

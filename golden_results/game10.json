@@ -1,0 +1,502 @@
+{
+  "game": "game10.jpg",
+  "timestamp": "2026-10-15T06:13:34.513Z",
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  },
+  "counts": {
+    "cells": 22,
+    "dominoes": 11,
+    "regions": 12,
+    "badges": 11
+  },
+  "badges": [
+    {
+      "id": "badge_1",
+      "x": 188,
+      "y": 638,
+      "colorHex": "#a855f7",
+      "recognizedToken": ">1",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 1
+      }
+    },
+    {
+      "id": "badge_2",
+      "x": 268,
+      "y": 638,
+      "colorHex": "#ec4899",
+      "recognizedToken": ">0",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 0
+      }
+    },
+    {
+      "id": "badge_3",
+      "x": 430,
+      "y": 638,
+      "colorHex": "#14b8a6",
+      "recognizedToken": ">3",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 3
+      }
+    },
+    {
+      "id": "badge_4",
+      "x": 269,
+      "y": 719,
+      "colorHex": "#0284c7",
+      "recognizedToken": "5",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 5
+      }
+    },
+    {
+      "id": "badge_5",
+      "x": 511,
+      "y": 719,
+      "colorHex": "#84cc16",
+      "recognizedToken": "=",
+      "parsedConstraint": {
+        "type": "equal"
+      }
+    },
+    {
+      "id": "badge_6",
+      "x": 269,
+      "y": 799,
+      "colorHex": "#ec4899",
+      "recognizedToken": "1",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 1
+      }
+    },
+    {
+      "id": "badge_7",
+      "x": 592,
+      "y": 799,
+      "colorHex": "#0284c7",
+      "recognizedToken": ">2",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 2
+      }
+    },
+    {
+      "id": "badge_8",
+      "x": 673,
+      "y": 800,
+      "colorHex": "#f97316",
+      "recognizedToken": ">14",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 14
+      }
+    },
+    {
+      "id": "badge_9",
+      "x": 269,
+      "y": 881,
+      "colorHex": "#a855f7",
+      "recognizedToken": "9",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 9
+      }
+    },
+    {
+      "id": "badge_10",
+      "x": 430,
+      "y": 880,
+      "colorHex": "#14b8a6",
+      "recognizedToken": ">9",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 9
+      }
+    },
+    {
+      "id": "badge_11",
+      "x": 674,
+      "y": 881,
+      "colorHex": "#84cc16",
+      "recognizedToken": "4",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 4
+      }
+    }
+  ],
+  "regions": [
+    {
+      "id": "region_1",
+      "color": "#dfccc4",
+      "cellCount": 2,
+      "cellIds": [
+        "0,0",
+        "1,0"
+      ],
+      "constraint": null
+    },
+    {
+      "id": "region_2",
+      "color": "#a855f7",
+      "cellCount": 1,
+      "cellIds": [
+        "0,1"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 1
+      }
+    },
+    {
+      "id": "region_3",
+      "color": "#ec4899",
+      "cellCount": 1,
+      "cellIds": [
+        "0,2"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 0
+      }
+    },
+    {
+      "id": "region_4",
+      "color": "#14b8a6",
+      "cellCount": 1,
+      "cellIds": [
+        "0,4"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 3
+      }
+    },
+    {
+      "id": "region_5",
+      "color": "#f97316",
+      "cellCount": 3,
+      "cellIds": [
+        "0,7",
+        "1,7",
+        "2,7"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 14
+      }
+    },
+    {
+      "id": "region_6",
+      "color": "#0284c7",
+      "cellCount": 1,
+      "cellIds": [
+        "1,2"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 5
+      }
+    },
+    {
+      "id": "region_7",
+      "color": "#84cc16",
+      "cellCount": 2,
+      "cellIds": [
+        "1,4",
+        "1,5"
+      ],
+      "constraint": {
+        "type": "equal"
+      }
+    },
+    {
+      "id": "region_8",
+      "color": "#a855f7",
+      "cellCount": 4,
+      "cellIds": [
+        "2,0",
+        "3,0",
+        "3,1",
+        "3,2"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 9
+      }
+    },
+    {
+      "id": "region_9",
+      "color": "#ec4899",
+      "cellCount": 1,
+      "cellIds": [
+        "2,2"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 1
+      }
+    },
+    {
+      "id": "region_10",
+      "color": "#14b8a6",
+      "cellCount": 3,
+      "cellIds": [
+        "2,4",
+        "3,4",
+        "2,5"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 9
+      }
+    },
+    {
+      "id": "region_11",
+      "color": "#0284c7",
+      "cellCount": 1,
+      "cellIds": [
+        "2,6"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 2
+      }
+    },
+    {
+      "id": "region_12",
+      "color": "#84cc16",
+      "cellCount": 2,
+      "cellIds": [
+        "3,6",
+        "3,7"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 4
+      }
+    }
+  ],
+  "dominoes": [
+    {
+      "id": "d_1",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_2",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_3",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_4",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_5",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_6",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_7",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_8",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_9",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_10",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_11",
+      "values": [
+        null,
+        null
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "id": "0,0",
+      "row": 0,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "0,1",
+      "row": 0,
+      "col": 1,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "0,2",
+      "row": 0,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "0,4",
+      "row": 0,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "0,7",
+      "row": 0,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "1,0",
+      "row": 1,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "1,2",
+      "row": 1,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "1,4",
+      "row": 1,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "1,5",
+      "row": 1,
+      "col": 5,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "1,7",
+      "row": 1,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "2,0",
+      "row": 2,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "2,2",
+      "row": 2,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "2,4",
+      "row": 2,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "2,5",
+      "row": 2,
+      "col": 5,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "2,6",
+      "row": 2,
+      "col": 6,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "2,7",
+      "row": 2,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,0",
+      "row": 3,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "3,1",
+      "row": 3,
+      "col": 1,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "3,2",
+      "row": 3,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "3,4",
+      "row": 3,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,6",
+      "row": 3,
+      "col": 6,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,7",
+      "row": 3,
+      "col": 7,
+      "componentId": "comp_2"
+    }
+  ]
+}

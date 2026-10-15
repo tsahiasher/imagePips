@@ -35,7 +35,8 @@ export function recognizeBadgeToken(
   imageOrCanvas: ImageDataLike | HTMLCanvasElement,
   cropBox?: { x: number; y: number; width: number; height: number },
   badgeWidth?: number,
-  badgeHeight?: number
+  badgeHeight?: number,
+  badgeColorHex?: string
 ): TokenRecognitionResult {
   let width: number;
   let height: number;
@@ -73,18 +74,19 @@ export function recognizeBadgeToken(
   const cx = Math.floor(width / 2);
   const cy = Math.floor(height / 2);
 
-  const rx = ((badgeWidth ?? 80) / 2) * 0.82;
-  const ry = ((badgeHeight ?? 80) / 2) * 0.82;
-  const cropRadius = Math.round(Math.max(rx, ry) * 1.1);
-
   const isSmallBadge = (badgeWidth ?? 80) <= 45 || (badgeHeight ?? 80) <= 45;
+  const isOrangeBadge = badgeColorHex === '#f97316' || badgeColorHex === '#ea580c';
+  const scale = isOrangeBadge && !isSmallBadge ? 0.94 : 0.82;
+  const rx = ((badgeWidth ?? 80) / 2) * scale;
+  const ry = ((badgeHeight ?? 80) / 2) * scale;
+  const cropRadius = Math.round(Math.max(rx, ry) * 1.05);
 
   for (let dy = -cropRadius; dy <= cropRadius; dy++) {
     const sy = startY + cy + dy;
     if (sy < 0) continue;
     for (let dx = -cropRadius; dx <= cropRadius; dx++) {
-      // Diamond equation: (|dx| / rx + |dy| / ry) <= 0.88
-      if (Math.abs(dx) / rx + Math.abs(dy) / ry > 0.88) continue;
+      // Diamond equation: (|dx| / rx + |dy| / ry) <= 0.95
+      if (Math.abs(dx) / rx + Math.abs(dy) / ry > 0.95) continue;
 
       const sx = startX + cx + dx;
       if (sx < 0) continue;
@@ -102,6 +104,7 @@ export function recognizeBadgeToken(
 
       const isText =
         (r > 200 && g > 200 && b > 200 && diff < 35) ||
+        (isOrangeBadge && r > 200 && g > 200 && b > 175 && diff < 55) ||
         (isSmallBadge && minVal >= 135 && diff < 65);
 
       if (isText) {
@@ -131,6 +134,44 @@ export function recognizeBadgeToken(
     });
     if (cleaned.length >= 15) {
       filteredPts = cleaned;
+    }
+  }
+
+  // Remove small disconnected dust islands (< 5 pixels)
+  if (filteredPts.length >= 20) {
+    const visitedSet = new Set<string>();
+    const components: Array<Array<{ x: number; y: number }>> = [];
+    const pMap = new Map<string, { x: number; y: number }>();
+    for (const p of filteredPts) pMap.set(`${p.x},${p.y}`, p);
+
+    for (const p of filteredPts) {
+      const key = `${p.x},${p.y}`;
+      if (visitedSet.has(key)) continue;
+      const comp: Array<{ x: number; y: number }> = [];
+      const queue = [p];
+      visitedSet.add(key);
+
+      while (queue.length > 0) {
+        const curr = queue.pop()!;
+        comp.push(curr);
+        for (let ody = -1; ody <= 1; ody++) {
+          for (let odx = -1; odx <= 1; odx++) {
+            if (odx === 0 && ody === 0) continue;
+            const nKey = `${curr.x + odx},${curr.y + ody}`;
+            if (pMap.has(nKey) && !visitedSet.has(nKey)) {
+              visitedSet.add(nKey);
+              queue.push(pMap.get(nKey)!);
+            }
+          }
+        }
+      }
+      components.push(comp);
+    }
+
+    const maxCompSize = Math.max(...components.map((c) => c.length));
+    if (maxCompSize >= 15) {
+      // Discard small noise specks that have fewer than 5 pixels
+      filteredPts = components.filter((c) => c.length >= 5).flatMap((c) => c);
     }
   }
 
@@ -175,8 +216,35 @@ export function recognizeBadgeToken(
     if (s > botBarSpan) botBarSpan = s;
   }
 
+  let maxTopHalfSpan = 0, maxBotHalfSpan = 0;
+  for (let y = minY; y < midY; y++) {
+    let s = 0;
+    for (let x = minX; x <= maxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) s++;
+    }
+    if (s > maxTopHalfSpan) maxTopHalfSpan = s;
+  }
+  for (let y = midY + 1; y <= maxY; y++) {
+    let s = 0;
+    for (let x = minX; x <= maxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) s++;
+    }
+    if (s > maxBotHalfSpan) maxBotHalfSpan = s;
+  }
+
+  const yGap1 = minY + Math.floor(glyphH * 0.35);
+  const yGap2 = minY + Math.floor(glyphH * 0.65);
+  let minGapRowPixels = Infinity;
+  for (let y = yGap1; y <= yGap2; y++) {
+    let s = 0;
+    for (let x = minX; x <= maxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) s++;
+    }
+    if (s < minGapRowPixels) minGapRowPixels = s;
+  }
+
   // 1.1. Equal sign '=': two horizontal bars, empty gap row, no diagonal slash
-  if (gapRowPixels <= 1 && topBarSpan >= glyphW * 0.55 && botBarSpan >= glyphW * 0.55) {
+  if (minGapRowPixels <= 1 && maxTopHalfSpan >= glyphW * 0.45 && maxBotHalfSpan >= glyphW * 0.45 && glyphW / glyphH >= 0.85) {
     return { token: '=', constraint: { type: 'equal' }, confidence: 0.99 };
   }
 
@@ -335,8 +403,20 @@ export function recognizeBadgeToken(
     }
   }
 
-  const isChevronLeft = midLeftPixels >= 1 && midRightPixels === 0 && span75 >= span25;
-  const isChevronRight = midRightPixels >= 1 && midLeftPixels === 0 && span25 >= span75;
+  let botRightPixels = 0;
+  for (let y = leftMaxY - 1; y <= leftMaxY; y++) {
+    for (let x = leftMinX + Math.floor(leftW * 0.5); x <= leftMaxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) botRightPixels++;
+    }
+  }
+
+  const isChevronLeft = midLeftPixels >= 1 && midLeftPixels > midRightPixels && midRightPixels <= 2 && span75 >= span25;
+  const isChevronRight =
+    midRightPixels >= 1 &&
+    midRightPixels > midLeftPixels &&
+    midLeftPixels <= 2 &&
+    span25 >= span75 &&
+    botRightPixels <= 1;
 
   let leftChar = '';
   // 1. Chevron '<'
@@ -349,9 +429,9 @@ export function recognizeBadgeToken(
   }
   // 3. Digit '2' (in '20'..'24'): wide digit with flat horizontal bottom baseline and NO continuous vertical stem
   else if (
-    leftMaxCol / leftH <= 0.82 &&
-    leftBotP >= leftW * 0.55 &&
-    leftW / leftH >= 0.60
+    leftMaxCol / leftH <= 0.86 &&
+    botRightPixels >= 2 &&
+    leftW / leftH >= 0.55
   ) {
     leftChar = '2';
   }
@@ -360,11 +440,57 @@ export function recognizeBadgeToken(
     leftChar = '1';
   }
 
+  // 3.1. 3-character token: split occurred between operator and two digits (e.g. '>14', '<10', '>24')
+  if ((leftChar === '<' || leftChar === '>') && rightW / rightH >= 0.85) {
+    const s2Start = rightMinX + Math.floor(rightW * 0.20);
+    const s2End = rightMinX + Math.floor(rightW * 0.60);
+    let minC2 = Infinity;
+    let split2X = Math.floor((rightMinX + rightMaxX) / 2);
+    for (let x = s2Start; x <= s2End; x++) {
+      let count = 0;
+      for (let y = rightMinY; y <= rightMaxY; y++) {
+        if (ptsSet.has(`${x},${y}`)) count++;
+      }
+      if (count < minC2) {
+        minC2 = count;
+        split2X = x;
+      }
+    }
+    let r1MinX = Infinity, r1MaxX = -Infinity, r1MinY = Infinity, r1MaxY = -Infinity;
+    for (let x = rightMinX; x <= split2X; x++) {
+      for (let y = rightMinY; y <= rightMaxY; y++) {
+        if (ptsSet.has(`${x},${y}`)) {
+          if (x < r1MinX) r1MinX = x;
+          if (x > r1MaxX) r1MaxX = x;
+          if (y < r1MinY) r1MinY = y;
+          if (y > r1MaxY) r1MaxY = y;
+        }
+      }
+    }
+    let r2MinX = Infinity, r2MaxX = -Infinity, r2MinY = Infinity, r2MaxY = -Infinity;
+    for (let x = split2X + 1; x <= rightMaxX; x++) {
+      for (let y = rightMinY; y <= rightMaxY; y++) {
+        if (ptsSet.has(`${x},${y}`)) {
+          if (x < r2MinX) r2MinX = x;
+          if (x > r2MaxX) r2MaxX = x;
+          if (y < r2MinY) r2MinY = y;
+          if (y > r2MaxY) r2MaxY = y;
+        }
+      }
+    }
+    const tens = classifySingleDigit(ptsSet, r1MinX, r1MaxX, r1MinY, r1MaxY);
+    const ones = classifySingleDigit(ptsSet, r2MinX, r2MaxX, r2MinY, r2MaxY);
+    const token = `${leftChar}${tens}${ones}`;
+    const constraint = parseConstraintFromToken(token);
+    return { token, constraint, confidence: 0.98 };
+  }
+
   // Right char classification:
-  let rightTopP = 0, rightBotP = 0;
+  let rightTopP = 0, rightBotP = 0, botRowPixels = 0;
   for (let x = rightMinX; x <= rightMaxX; x++) {
     if (ptsSet.has(`${x},${rightMinY}`) || ptsSet.has(`${x},${rightMinY + 1}`)) rightTopP++;
     if (ptsSet.has(`${x},${rightMaxY}`) || ptsSet.has(`${x},${rightMaxY - 1}`)) rightBotP++;
+    if (ptsSet.has(`${x},${rightMaxY}`)) botRowPixels++;
   }
 
   let rightMaxCol = 0;
@@ -415,13 +541,17 @@ export function recognizeBadgeToken(
   let hasUpperRight = false;
   let upLeft = 0;
   let upRight = 0;
+  let emptyUpperRightRows = 0;
   for (let y = yUR1; y <= yUR2; y++) {
+    let rowUR = 0;
     for (let x = xRightLimit; x <= rightMaxX; x++) {
       if (ptsSet.has(`${x},${y}`)) {
         hasUpperRight = true;
         upRight++;
+        rowUR++;
       }
     }
+    if (rowUR === 0) emptyUpperRightRows++;
     for (let x = rightMinX; x <= xLeftLimit; x++) {
       if (ptsSet.has(`${x},${y}`)) {
         upLeft++;
@@ -451,6 +581,28 @@ export function recognizeBadgeToken(
     }
   }
 
+  const yLLW1 = rightMinY + Math.floor(rightH * 0.58);
+  const yLLW2 = rightMinY + Math.floor(rightH * 0.75);
+  const xLeftThird = rightMinX + Math.max(1, Math.floor(rightW * 0.32));
+  let hasEmptyLowerLeftRow = false;
+  for (let y = yLLW1; y <= yLLW2; y++) {
+    let count = 0;
+    for (let x = rightMinX; x <= xLeftThird; x++) {
+      if (ptsSet.has(`${x},${y}`)) count++;
+    }
+    if (count === 0) {
+      hasEmptyLowerLeftRow = true;
+      break;
+    }
+  }
+
+  let lowerRightStem = 0;
+  for (let y = yLLW1; y <= yLLW2; y++) {
+    for (let x = xRightLimit; x <= rightMaxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) lowerRightStem++;
+    }
+  }
+
   let rightChar = '';
   // 1. '7' (in '<7', '>7'): solid top bar, narrow bottom point
   if (rightTopP >= rightW * 0.65 && rightBotP <= rightW * 0.50) {
@@ -464,7 +616,8 @@ export function recognizeBadgeToken(
   else if (
     maxCrossSpan >= rightW * 0.65 &&
     rLowerLeft <= Math.max(1, Math.floor(rightW * 0.12)) &&
-    rightBotP <= Math.max(4, Math.floor(rightW * 0.60))
+    rightBotP <= Math.max(4, Math.floor(rightW * 0.60)) &&
+    rightTopP < rightW * 0.55
   ) {
     rightChar = '4';
   }
@@ -472,14 +625,26 @@ export function recognizeBadgeToken(
   else if (rCenterHole === 0) {
     rightChar = '0';
   }
-  // 5. '5' (in '<5'): empty upper-right cavity below top bar, or vertical stem on upper-left
+  // 5. '9' (in '>9'): enclosed upper loop (both upLeft AND upRight well-developed, no cavity), solid waist, empty lower-left row, solid lower-right stem
+  else if (
+    upLeft >= 8 &&
+    upLeft >= upRight * 0.65 &&
+    hasUpperRight &&
+    emptyUpperRightRows === 0 &&
+    maxCrossSpan >= rightW * 0.55 &&
+    hasEmptyLowerLeftRow &&
+    lowerRightStem >= 6
+  ) {
+    rightChar = '9';
+  }
+  // 6. '5' (in '<5'): empty upper-right cavity below top bar, or vertical stem on upper-left
   else if (upLeft > upRight || !hasUpperRight) {
     rightChar = '5';
   }
-  // 6. '2' vs '3':
-  // In '2', lower-half has descending diagonal so rightMid <= leftMid * 1.85
-  // In '3', lower loop bulges heavily to the right so rightMid > leftMid * 1.85
-  else if (rightMid <= leftMid * 1.85) {
+  // 7. '2' vs '3':
+  // In '2', descending diagonal has midRatio <= 1.85, OR flat baseline with botRow >= 0.55*W and midRatio <= 3.00
+  // In '3', lower loop bulges heavily to the right so rightMid > leftMid * 1.85 and botRow <= 0.50*W
+  else if (rightMid <= leftMid * 1.85 || (botRowPixels >= rightW * 0.55 && rightMid <= leftMid * 3.00)) {
     rightChar = '2';
   } else {
     rightChar = '3';
@@ -507,8 +672,6 @@ function classifySingleDigit(
   if (glyphW / glyphH < 0.58) {
     return '1';
   }
-
-  // Top and bottom row pixel counts
   let topP = 0, botP = 0;
   for (let x = minX; x <= maxX; x++) {
     if (ptsSet.has(`${x},${minY}`) || ptsSet.has(`${x},${minY + 1}`)) topP++;
@@ -631,8 +794,26 @@ function classifySingleDigit(
     return '0';
   }
 
-  // 5. '6' vs '8': left wall is continuous, waist crossbar is solid
-  if (maxConsecutiveEmptyLeft <= 1 && maxWaistSpan >= glyphW * 0.55) {
+  // Continuous left wall in upper half:
+  const yUpperLeftStart = minY + Math.floor(glyphH * 0.20);
+  const yUpperLeftEnd = Math.max(yUpperLeftStart, waistY - 1);
+  let maxConsecutiveEmptyLeftUpper = 0;
+  let currEmptyLeftUpper = 0;
+  for (let y = yUpperLeftStart; y <= yUpperLeftEnd; y++) {
+    let hasLeft = false;
+    for (let x = minX; x <= minX + leftMargin; x++) {
+      if (ptsSet.has(`${x},${y}`)) hasLeft = true;
+    }
+    if (!hasLeft) {
+      currEmptyLeftUpper++;
+      if (currEmptyLeftUpper > maxConsecutiveEmptyLeftUpper) maxConsecutiveEmptyLeftUpper = currEmptyLeftUpper;
+    } else {
+      currEmptyLeftUpper = 0;
+    }
+  }
+
+  // 5. '6' vs '8' vs '9': upper left wall is continuous, waist crossbar is solid
+  if (maxConsecutiveEmptyLeftUpper <= 1 && maxWaistSpan >= glyphW * 0.55) {
     const yUR1 = minY + Math.floor(glyphH * 0.22);
     const yUR2 = Math.max(yUR1, waistY - 1);
     const xRight = maxX - Math.max(1, Math.round(glyphW * 0.25));
@@ -646,7 +827,7 @@ function classifySingleDigit(
 
     // In '8', the lower loop has a solid, continuous left wall.
     // In '9', the lower left has an open mouth (gap) between waist and bottom hook.
-    const yLLW1 = minY + Math.floor(glyphH * 0.60);
+    const yLLW1 = minY + Math.floor(glyphH * 0.58);
     const yLLW2 = minY + Math.floor(glyphH * 0.75);
     const xLeftThird = minX + Math.max(1, Math.floor(glyphW * 0.30));
     let hasEmptyLowerLeftRow = false;
@@ -666,7 +847,7 @@ function classifySingleDigit(
         return '9';
       }
       return '8';
-    } else {
+    } else if (maxConsecutiveEmptyLeft <= 1) {
       return '6';
     }
   }

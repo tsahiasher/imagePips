@@ -1,0 +1,649 @@
+{
+  "game": "game8.jpg",
+  "timestamp": "2026-10-15T06:13:34.306Z",
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "warnings": []
+  },
+  "counts": {
+    "cells": 28,
+    "dominoes": 14,
+    "regions": 16,
+    "badges": 15
+  },
+  "badges": [
+    {
+      "id": "badge_1",
+      "x": 246,
+      "y": 65,
+      "colorHex": "#ec4899",
+      "recognizedToken": "0",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 0
+      }
+    },
+    {
+      "id": "badge_2",
+      "x": 337,
+      "y": 64,
+      "colorHex": "#14b8a6",
+      "recognizedToken": "4",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 4
+      }
+    },
+    {
+      "id": "badge_3",
+      "x": 155,
+      "y": 111,
+      "colorHex": "#a855f7",
+      "recognizedToken": "≠",
+      "parsedConstraint": {
+        "type": "different"
+      }
+    },
+    {
+      "id": "badge_4",
+      "x": 475,
+      "y": 111,
+      "colorHex": "#f97316",
+      "recognizedToken": ">7",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 7
+      }
+    },
+    {
+      "id": "badge_5",
+      "x": 247,
+      "y": 155,
+      "colorHex": "#0284c7",
+      "recognizedToken": "=",
+      "parsedConstraint": {
+        "type": "equal"
+      }
+    },
+    {
+      "id": "badge_6",
+      "x": 474,
+      "y": 155,
+      "colorHex": "#14b8a6",
+      "recognizedToken": "4",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 4
+      }
+    },
+    {
+      "id": "badge_7",
+      "x": 202,
+      "y": 201,
+      "colorHex": "#ec4899",
+      "recognizedToken": "=",
+      "parsedConstraint": {
+        "type": "equal"
+      }
+    },
+    {
+      "id": "badge_8",
+      "x": 246,
+      "y": 202,
+      "colorHex": "#f97316",
+      "recognizedToken": "3",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 3
+      }
+    },
+    {
+      "id": "badge_9",
+      "x": 338,
+      "y": 202,
+      "colorHex": "#84cc16",
+      "recognizedToken": "9",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 9
+      }
+    },
+    {
+      "id": "badge_10",
+      "x": 474,
+      "y": 202,
+      "colorHex": "#0284c7",
+      "recognizedToken": "14",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 14
+      }
+    },
+    {
+      "id": "badge_11",
+      "x": 246,
+      "y": 293,
+      "colorHex": "#84cc16",
+      "recognizedToken": "<4",
+      "parsedConstraint": {
+        "type": "lessThan",
+        "value": 4
+      }
+    },
+    {
+      "id": "badge_12",
+      "x": 337,
+      "y": 292,
+      "colorHex": "#a855f7",
+      "recognizedToken": "<3",
+      "parsedConstraint": {
+        "type": "lessThan",
+        "value": 3
+      }
+    },
+    {
+      "id": "badge_13",
+      "x": 383,
+      "y": 293,
+      "colorHex": "#ec4899",
+      "recognizedToken": ">4",
+      "parsedConstraint": {
+        "type": "greaterThan",
+        "value": 4
+      }
+    },
+    {
+      "id": "badge_14",
+      "x": 428,
+      "y": 292,
+      "colorHex": "#14b8a6",
+      "recognizedToken": "6",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 6
+      }
+    },
+    {
+      "id": "badge_15",
+      "x": 337,
+      "y": 428,
+      "colorHex": "#f97316",
+      "recognizedToken": "6",
+      "parsedConstraint": {
+        "type": "sum",
+        "value": 6
+      }
+    }
+  ],
+  "regions": [
+    {
+      "id": "region_1",
+      "color": "#a855f7",
+      "cellCount": 3,
+      "cellIds": [
+        "0,0",
+        "1,0",
+        "0,1"
+      ],
+      "constraint": {
+        "type": "different"
+      }
+    },
+    {
+      "id": "region_2",
+      "color": "#ec4899",
+      "cellCount": 1,
+      "cellIds": [
+        "0,2"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 0
+      }
+    },
+    {
+      "id": "region_3",
+      "color": "#14b8a6",
+      "cellCount": 1,
+      "cellIds": [
+        "0,4"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 4
+      }
+    },
+    {
+      "id": "region_4",
+      "color": "#f97316",
+      "cellCount": 2,
+      "cellIds": [
+        "0,7",
+        "1,7"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 7
+      }
+    },
+    {
+      "id": "region_5",
+      "color": "#0284c7",
+      "cellCount": 2,
+      "cellIds": [
+        "1,2",
+        "2,2"
+      ],
+      "constraint": {
+        "type": "equal"
+      }
+    },
+    {
+      "id": "region_6",
+      "color": "#84cc16",
+      "cellCount": 3,
+      "cellIds": [
+        "1,4",
+        "2,4",
+        "3,4"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 9
+      }
+    },
+    {
+      "id": "region_7",
+      "color": "#ec4899",
+      "cellCount": 3,
+      "cellIds": [
+        "2,0",
+        "3,0",
+        "3,1"
+      ],
+      "constraint": {
+        "type": "equal"
+      }
+    },
+    {
+      "id": "region_8",
+      "color": "#14b8a6",
+      "cellCount": 1,
+      "cellIds": [
+        "2,7"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 4
+      }
+    },
+    {
+      "id": "region_9",
+      "color": "#f97316",
+      "cellCount": 1,
+      "cellIds": [
+        "3,2"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 3
+      }
+    },
+    {
+      "id": "region_10",
+      "color": "#0284c7",
+      "cellCount": 3,
+      "cellIds": [
+        "3,5",
+        "3,6",
+        "3,7"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 14
+      }
+    },
+    {
+      "id": "region_11",
+      "color": "#84cc16",
+      "cellCount": 1,
+      "cellIds": [
+        "5,2"
+      ],
+      "constraint": {
+        "type": "lessThan",
+        "value": 4
+      }
+    },
+    {
+      "id": "region_12",
+      "color": "#a855f7",
+      "cellCount": 2,
+      "cellIds": [
+        "5,3",
+        "5,4"
+      ],
+      "constraint": {
+        "type": "lessThan",
+        "value": 3
+      }
+    },
+    {
+      "id": "region_13",
+      "color": "#ec4899",
+      "cellCount": 1,
+      "cellIds": [
+        "5,5"
+      ],
+      "constraint": {
+        "type": "greaterThan",
+        "value": 4
+      }
+    },
+    {
+      "id": "region_14",
+      "color": "#14b8a6",
+      "cellCount": 1,
+      "cellIds": [
+        "5,6"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 6
+      }
+    },
+    {
+      "id": "region_15",
+      "color": "#dfccc4",
+      "cellCount": 1,
+      "cellIds": [
+        "6,4"
+      ],
+      "constraint": null
+    },
+    {
+      "id": "region_16",
+      "color": "#f97316",
+      "cellCount": 2,
+      "cellIds": [
+        "7,4",
+        "8,4"
+      ],
+      "constraint": {
+        "type": "sum",
+        "value": 6
+      }
+    }
+  ],
+  "dominoes": [
+    {
+      "id": "d_1",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_2",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_3",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_4",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_5",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_6",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_7",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_8",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_9",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_10",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_11",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_12",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_13",
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "id": "d_14",
+      "values": [
+        null,
+        null
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "id": "0,0",
+      "row": 0,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "0,1",
+      "row": 0,
+      "col": 1,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "0,2",
+      "row": 0,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "0,4",
+      "row": 0,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "0,7",
+      "row": 0,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "1,0",
+      "row": 1,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "1,2",
+      "row": 1,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "1,4",
+      "row": 1,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "1,7",
+      "row": 1,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "2,0",
+      "row": 2,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "2,2",
+      "row": 2,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "2,4",
+      "row": 2,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "2,7",
+      "row": 2,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,0",
+      "row": 3,
+      "col": 0,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "3,1",
+      "row": 3,
+      "col": 1,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "3,2",
+      "row": 3,
+      "col": 2,
+      "componentId": "comp_1"
+    },
+    {
+      "id": "3,4",
+      "row": 3,
+      "col": 4,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,5",
+      "row": 3,
+      "col": 5,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,6",
+      "row": 3,
+      "col": 6,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "3,7",
+      "row": 3,
+      "col": 7,
+      "componentId": "comp_2"
+    },
+    {
+      "id": "5,2",
+      "row": 5,
+      "col": 2,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "5,3",
+      "row": 5,
+      "col": 3,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "5,4",
+      "row": 5,
+      "col": 4,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "5,5",
+      "row": 5,
+      "col": 5,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "5,6",
+      "row": 5,
+      "col": 6,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "6,4",
+      "row": 6,
+      "col": 4,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "7,4",
+      "row": 7,
+      "col": 4,
+      "componentId": "comp_3"
+    },
+    {
+      "id": "8,4",
+      "row": 8,
+      "col": 4,
+      "componentId": "comp_3"
+    }
+  ]
+}

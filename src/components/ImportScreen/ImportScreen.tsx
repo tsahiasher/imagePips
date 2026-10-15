@@ -266,6 +266,49 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
           </label>
         )}
 
+        {(() => {
+          if (typeof window === 'undefined') return false;
+          try {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('debug') === '1' || params.get('debug') === 'true';
+          } catch {
+            return false;
+          }
+        })() && (
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '10px' }}>
+            {['game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7', 'game8', 'game9', 'game10'].map((g) => (
+              <button
+                key={g}
+                id={`test-${g}-btn`}
+                type="button"
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  background: '#e2e8f0',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  color: '#334155'
+                }}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const res = await fetch(`/${g}.jpg`);
+                    const blob = await res.blob();
+                    const file = new File([blob], `${g}.jpg`, { type: 'image/jpeg' });
+                    handleProcessImageFile(file);
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+              >
+                Test {g}
+              </button>
+            ))}
+          </div>
+        )}
+
         {errorMessage && (
           <div
             style={{
