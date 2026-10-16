@@ -40,6 +40,16 @@ npm test
 npm run build
 ```
 
+
+### Deploy to firebase
+```bash
+firebase.cmd deploy --only hosting
+```
+
+### Run with screen buttons
+```bash
+http://localhost:5173/?debug=1
+```
 ---
 
 ## Features
