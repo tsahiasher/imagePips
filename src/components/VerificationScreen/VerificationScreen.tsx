@@ -38,8 +38,18 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   const totalPlayableCells = puzzle.cells.length;
   const totalDominoSlots = puzzle.dominoes.length * 2;
   const isConsistent = totalPlayableCells === totalDominoSlots;
+  const [initialGridBounds] = useState(() => {
+    const rs = initialPuzzle.cells.map((c) => c.row);
+    const cs = initialPuzzle.cells.map((c) => c.col);
+    return {
+      minRow: rs.length > 0 ? Math.min(...rs) : 0,
+      maxRow: rs.length > 0 ? Math.max(...rs) : 0,
+      minCol: cs.length > 0 ? Math.min(...cs) : 0,
+      maxCol: cs.length > 0 ? Math.max(...cs) : 0
+    };
+  });
 
-  const [editMode, setEditMode] = useState<'regions' | 'cells'>('regions');
+  const [editMode, setEditMode] = useState<'select' | 'regions' | 'cells'>('select');
 
   // Pinch-to-zoom and pan state for mobile comparison view
   const [zoom, setZoom] = useState<number>(1);
@@ -164,10 +174,22 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
       componentId: compMap.get(c.id) ?? 'comp_1'
     }));
 
-    const updatedRegions = puzzle.regions.map((reg) => ({
-      ...reg,
-      cellIds: reg.cellIds.filter((id) => updatedCells.some((c) => c.id === id))
-    }));
+    const targetRegionId = activeRegionId || puzzle.regions[0]?.id;
+    const updatedRegions = puzzle.regions.map((reg) => {
+      if (existing) {
+        return {
+          ...reg,
+          cellIds: reg.cellIds.filter((id) => id !== cellId)
+        };
+      }
+      if (reg.id === targetRegionId) {
+        return {
+          ...reg,
+          cellIds: reg.cellIds.includes(cellId) ? reg.cellIds : [...reg.cellIds, cellId]
+        };
+      }
+      return reg;
+    });
 
     setPuzzle((prev) => ({
       ...prev,
@@ -179,7 +201,15 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   const handleCellInteraction = (cellId: string) => {
     if (editMode === 'cells') {
       handleToggleCell(cellId);
+    } else if (editMode === 'select') {
+      const reg = puzzle.regions.find((r) => r.cellIds.includes(cellId));
+      if (reg) {
+        setActiveRegionId(reg.id);
+      }
     } else {
+      // In Assign Regions mode, holes must never be selected or added to regions
+      const isPlayable = puzzle.cells.some((c) => c.id === cellId);
+      if (!isPlayable) return;
       handleCellClick(cellId);
     }
   };
@@ -194,6 +224,9 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   // Toggle cell membership in active region
   const handleCellClick = (cellId: string) => {
     if (!activeRegionId) return;
+    // Holes must never be assigned to a region
+    const isPlayable = puzzle.cells.some((c) => c.id === cellId);
+    if (!isPlayable) return;
 
     setPuzzle((prev) => ({
       ...prev,
@@ -588,6 +621,19 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
                 {showEditPane && (
                   <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '2px' }}>
                     <button
+                      onClick={() => setEditMode('select')}
+                      style={{
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        background: editMode === 'select' ? '#4f46e5' : 'transparent',
+                        color: editMode === 'select' ? '#ffffff' : '#475569',
+                        fontSize: '0.74rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      Select Region
+                    </button>
+                    <button
                       onClick={() => setEditMode('regions')}
                       style={{
                         padding: '3px 8px',
@@ -620,6 +666,10 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
                 puzzle={puzzle}
                 placements={[]}
                 cellSize={56}
+                activeRegionId={showEditPane ? activeRegionId : null}
+                gridBounds={initialGridBounds}
+                showHoles={showEditPane}
+                editMode={editMode}
                 onCellClick={showEditPane ? handleCellInteraction : undefined}
                 onRegionBadgeClick={handleBadgeClick}
               />
@@ -690,7 +740,9 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
             {drawerTab === 'regions' ? (
               <>
                 <div style={{ padding: '8px 12px', borderRadius: '8px', background: '#eef2ff', border: '1px solid #c7d2fe', fontSize: '0.78rem', color: '#3730a3' }}>
-                  Tap a badge on the board or select a region below, then tap cells on the board to add or remove them.
+                  {editMode === 'select' && 'Select Region mode: Tap any cell or badge on the board to select and focus its region in the list.'}
+                  {editMode === 'regions' && 'Assign Regions mode: Tap playable cells on the board to add or remove them from the active region.'}
+                  {editMode === 'cells' && 'Toggle Cells/Holes mode: Tap cells or dashed slots on the board to toggle between playable cells and holes.'}
                 </div>
 
                 <RegionListEditor

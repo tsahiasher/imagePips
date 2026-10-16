@@ -33,6 +33,9 @@ Open your browser and navigate to `http://localhost:5173`.
 
 ### Testing & Production Build
 ```bash
+# Create golden regression test suites
+npm run save:goldens
+
 # Run unit and golden regression test suites
 npm test
 

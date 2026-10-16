@@ -7,6 +7,7 @@ interface RegionBoundaryProps {
   minCol: number;
   cellSize: number;
   padding: number;
+  isSelected?: boolean;
 }
 
 export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
@@ -14,7 +15,8 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
   minRow,
   minCol,
   cellSize,
-  padding
+  padding,
+  isSelected = false
 }) => {
   // In Pips, dashed perimeter lines denote constraint/rule boundaries.
   // Regions without a rule (unconstrained / neutral cells) do not have dashed lines.
@@ -57,7 +59,20 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
   }
 
   return (
-    <g className="region-boundary" pointerEvents="none">
+    <g className={`region-boundary ${isSelected ? 'selected-region-boundary' : ''}`} pointerEvents="none">
+      {isSelected &&
+        segments.map((seg, idx) => (
+          <line
+            key={`halo_${idx}`}
+            x1={seg.x1}
+            y1={seg.y1}
+            x2={seg.x2}
+            y2={seg.y2}
+            stroke="#ffffff"
+            strokeWidth={6}
+            strokeLinecap="round"
+          />
+        ))}
       {segments.map((seg, idx) => (
         <line
           key={idx}
@@ -65,9 +80,9 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
           y1={seg.y1}
           x2={seg.x2}
           y2={seg.y2}
-          stroke={region.color}
-          strokeWidth={3}
-          strokeDasharray="6 4"
+          stroke={isSelected ? '#0f172a' : region.color}
+          strokeWidth={isSelected ? 4 : 3}
+          strokeDasharray={isSelected ? '6 3' : '6 4'}
           strokeLinecap="round"
         />
       ))}

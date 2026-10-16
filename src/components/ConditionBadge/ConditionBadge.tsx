@@ -5,6 +5,7 @@ interface ConditionBadgeProps {
   constraint: Constraint | null;
   color?: string;
   invalid?: boolean;
+  isSelected?: boolean;
   size?: number; // Size in SVG units (e.g. 32px)
   cx?: number;
   cy?: number;
@@ -16,6 +17,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
   constraint,
   color = '#6366f1',
   invalid = false,
+  isSelected = false,
   size = 32,
   cx = 0,
   cy = 0,
@@ -39,12 +41,33 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
 
   return (
     <g
-      className={`condition-badge-group ${className}`}
+      className={`condition-badge-group ${isSelected ? 'selected-condition-badge' : ''} ${className}`}
       onClick={onClick}
       role="img"
       aria-label={ariaDescription}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
+      {/* Selection halo when active */}
+      {isSelected && (
+        <>
+          <path
+            d={diamondPath}
+            fill="none"
+            stroke="#0f172a"
+            strokeWidth={size * 0.28}
+            strokeLinejoin="round"
+            opacity={0.85}
+          />
+          <path
+            d={diamondPath}
+            fill="none"
+            stroke="#ffffff"
+            strokeWidth={size * 0.16}
+            strokeLinejoin="round"
+          />
+        </>
+      )}
+
       {/* Drop shadow filter or subtle under-layer */}
       <path
         d={diamondPath}
@@ -57,7 +80,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         d={diamondPath}
         fill={color}
         stroke="#ffffff"
-        strokeWidth={2}
+        strokeWidth={isSelected ? 2.5 : 2}
         strokeLinejoin="round"
       />
 

@@ -119,6 +119,24 @@ input, select, textarea {
   animation: errorDotAppear 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+/* Selected region highlight animations in Edit mode */
+@keyframes regionGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(79, 70, 229, 0.8));
+  }
+}
+
+.selected-region-cell {
+  animation: regionGlow 2.2s ease-in-out infinite;
+}
+
+.selected-condition-badge {
+  filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.85));
+}
+
 /* Touch action prevent scroll during game drag */
 .no-touch-scroll {
   touch-action: none;

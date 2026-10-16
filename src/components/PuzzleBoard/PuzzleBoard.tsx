@@ -23,6 +23,10 @@ interface PuzzleBoardProps {
   cellSize?: number;
   dragCandidate?: DragCandidate | null;
   selectedDominoId?: string | null;
+  activeRegionId?: string | null;
+  gridBounds?: { minRow: number; maxRow: number; minCol: number; maxCol: number };
+  showHoles?: boolean;
+  editMode?: 'select' | 'regions' | 'cells';
   onDominoClick?: (dominoId: string) => void;
   onDominoPointerDown?: (e: React.PointerEvent, dominoId: string, fromBoard: boolean) => void;
   onCellClick?: (cellId: CellId) => void;
@@ -39,6 +43,10 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   cellSize = 72,
   dragCandidate = null,
   selectedDominoId = null,
+  activeRegionId = null,
+  gridBounds,
+  showHoles = false,
+  editMode = 'select',
   onDominoClick,
   onDominoPointerDown,
   onCellClick,
@@ -47,17 +55,22 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   boardRef,
   className = ''
 }) => {
-  // Compute bounds of cells
-  let minRow = 0;
-  let maxRow = 0;
-  let minCol = 0;
-  let maxCol = 0;
+  // Compute bounds of cells (or use gridBounds if provided)
+  let minRow = gridBounds?.minRow ?? 0;
+  let maxRow = gridBounds?.maxRow ?? 0;
+  let minCol = gridBounds?.minCol ?? 0;
+  let maxCol = gridBounds?.maxCol ?? 0;
 
   if (puzzle.cells.length > 0) {
-    minRow = Math.min(...puzzle.cells.map((c) => c.row));
-    maxRow = Math.max(...puzzle.cells.map((c) => c.row));
-    minCol = Math.min(...puzzle.cells.map((c) => c.col));
-    maxCol = Math.max(...puzzle.cells.map((c) => c.col));
+    const rMin = Math.min(...puzzle.cells.map((c) => c.row));
+    const rMax = Math.max(...puzzle.cells.map((c) => c.row));
+    const cMin = Math.min(...puzzle.cells.map((c) => c.col));
+    const cMax = Math.max(...puzzle.cells.map((c) => c.col));
+
+    minRow = gridBounds ? Math.min(gridBounds.minRow, rMin) : rMin;
+    maxRow = gridBounds ? Math.max(gridBounds.maxRow, rMax) : rMax;
+    minCol = gridBounds ? Math.min(gridBounds.minCol, cMin) : cMin;
+    maxCol = gridBounds ? Math.max(gridBounds.maxCol, cMax) : cMax;
   }
 
   const cols = Math.max(1, maxCol - minCol + 1);
@@ -106,6 +119,19 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
     puzzle.dominoes.map((d) => [d.id, d])
   );
 
+  // Find all hole coordinates inside the active grid bounding box when showHoles is enabled
+  const holes: { row: number; col: number; id: string }[] = [];
+  if (showHoles) {
+    for (let r = minRow; r <= maxRow; r++) {
+      for (let c = minCol; c <= maxCol; c++) {
+        const id = `${r},${c}`;
+        if (!cellMap.has(id)) {
+          holes.push({ row: r, col: c, id });
+        }
+      }
+    }
+  }
+
   return (
     <div
       className={`puzzle-board-container ${className}`}
@@ -140,6 +166,59 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           }
         }}
       >
+        {/* Empty holes (rendered in edit mode so clicking an empty hole turns it back into a playable cell) */}
+        {showHoles && holes.length > 0 && (
+          <g className="board-holes">
+            {holes.map((h) => {
+              const x = padding + (h.col - minCol) * cellSize;
+              const y = padding + (h.row - minRow) * cellSize;
+              return (
+                <g
+                  key={h.id}
+                  className="hole-cell"
+                  style={{
+                    cursor: editMode === 'cells' && onCellClick ? 'pointer' : 'default',
+                    pointerEvents: editMode === 'cells' ? 'auto' : 'none'
+                  }}
+                  onClick={editMode === 'cells' ? () => onCellClick?.(h.id) : undefined}
+                  role="button"
+                  aria-label={`Hole at ${h.row},${h.col}`}
+                >
+                  <rect
+                    x={x + 3}
+                    y={y + 3}
+                    width={cellSize - 6}
+                    height={cellSize - 6}
+                    rx={cellSize * 0.16}
+                    fill="#f1f5f9"
+                    stroke="#cbd5e1"
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                  />
+                  <line
+                    x1={x + cellSize / 2 - 5}
+                    y1={y + cellSize / 2}
+                    x2={x + cellSize / 2 + 5}
+                    y2={y + cellSize / 2}
+                    stroke="#94a3b8"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1={x + cellSize / 2}
+                    y1={y + cellSize / 2 - 5}
+                    x2={x + cellSize / 2}
+                    y2={y + cellSize / 2 + 5}
+                    stroke="#94a3b8"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  />
+                </g>
+              );
+            })}
+          </g>
+        )}
+
         {/* Playable cells */}
         <g className="board-cells">
           {puzzle.cells.map((cell) => {
@@ -159,6 +238,8 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                 y={y}
                 size={cellSize}
                 regionColor={reg?.color}
+                isSelectedRegion={Boolean(activeRegionId && reg?.id === activeRegionId)}
+                hasActiveRegion={Boolean(activeRegionId)}
                 isHighlighted={Boolean(isCandidate && dragCandidate?.isLegal)}
                 highlightType="legal"
                 onClick={() => onCellClick?.(cell.id)}
@@ -177,6 +258,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
               minCol={minCol}
               cellSize={cellSize}
               padding={padding}
+              isSelected={Boolean(activeRegionId && reg.id === activeRegionId)}
             />
           ))}
         </g>
@@ -263,6 +345,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                 size={Math.max(34, cellSize * 0.56)}
                 cx={cx}
                 cy={cy}
+                isSelected={Boolean(activeRegionId && reg.id === activeRegionId)}
                 onClick={onRegionBadgeClick ? () => onRegionBadgeClick(reg.id) : undefined}
               />
             );

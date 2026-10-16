@@ -1,5 +1,27 @@
 # Progress Log
 
+**2026-10-16 — Edit Mode Refinement: Select Region mode, hole selection prevention, and active region spotlighting. ✅ DONE**
+- Implemented dedicated three-mode editing workflow (`Select Region`, `Assign Regions`, `Toggle Cells/Holes`) across `VerificationScreen` and `ManualEditor`.
+- Guarded `Assign Regions` mode so that clicks on holes (unplayable slots) are strictly rejected and cannot be selected or assigned to regions.
+- Added `Select Region` mode button allowing users to tap any cell or condition badge on the board to focus its region, with smooth scrolling and highlight in the region drawer/list.
+- Added active region visual spotlighting: dimming non-selected cells/badges to 28% opacity, applying glowing outline and boundary halo to selected region cells.
+- Preserved initial bounding box and rendered interactive dashed hole slots in `cells` mode for bidirectional toggling.
+- Files touched:
+  - `src/components/ConditionBadge/ConditionBadge.tsx`
+  - `src/components/ManualEditor/ManualEditor.tsx`
+  - `src/components/PuzzleBoard/PuzzleBoard.tsx`
+  - `src/components/PuzzleCell/PuzzleCell.tsx`
+  - `src/components/RegionBoundary/RegionBoundary.tsx`
+  - `src/components/VerificationScreen/VerificationScreen.tsx`
+  - `src/index.css`
+  - `README.md`
+  - `docs/DECISIONS.md`
+  - `docs/PROGRESS.md`
+- Proof:
+  - All 17 test suites (65 tests) passing (`npx vitest run`).
+  - Production build passing with 0 errors (`npm run build`).
+  - Hot module replacement confirmed active and functioning on `http://localhost:5173/`.
+
 **2026-10-15 — Show test game buttons only in debug mode with flag debug=1. ✅ DONE**
 - Configured [ImportScreen.tsx](file:///c:/Zahi/image_pips/src/components/ImportScreen/ImportScreen.tsx) to conditionally render the `Test game1`..`Test game10` quick-test buttons only when the `debug=1` (or `debug=true`) query parameter is provided in the URL (e.g. `http://localhost:5173/?debug=1`).
 - Files touched:

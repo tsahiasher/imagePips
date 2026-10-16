@@ -25,7 +25,7 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
     initialPuzzle ? Math.max(...initialPuzzle.cells.map((c) => c.col)) + 1 : 6
   );
   const [name, setName] = useState(initialPuzzle?.name ?? 'Custom Puzzle');
-  const [editMode, setEditMode] = useState<'regions' | 'cells'>('regions');
+  const [editMode, setEditMode] = useState<'select' | 'regions' | 'cells'>('select');
 
   // Playable cells set (key: "r,c")
   const [playableKeys, setPlayableKeys] = useState<Set<string>>(() => {
@@ -569,8 +569,22 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               </button>
             </div>
 
-            {/* Touch-friendly mode toggle: Assign Regions vs Toggle Cells/Holes */}
+            {/* Touch-friendly mode toggle: Select Region vs Assign Regions vs Toggle Cells/Holes */}
             <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '2px' }}>
+              <button
+                type="button"
+                onClick={() => setEditMode('select')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  background: editMode === 'select' ? '#4f46e5' : 'transparent',
+                  color: editMode === 'select' ? '#ffffff' : '#475569',
+                  fontSize: '0.76rem',
+                  fontWeight: 600
+                }}
+              >
+                Select Region
+              </button>
               <button
                 type="button"
                 onClick={() => setEditMode('regions')}
@@ -621,15 +635,24 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                 const key = `${r},${c}`;
                 const isPlayable = playableKeys.has(key);
                 const reg = regions.find((rg) => rg.cellIds.includes(key));
+                const isSelectedRegion = Boolean(activeRegionId && reg && reg.id === activeRegionId);
+                const hasActiveRegion = Boolean(activeRegionId);
 
                 return (
                   <div
                     key={key}
                     onClick={() => {
-                      if (editMode === 'cells' || !isPlayable) {
+                      if (editMode === 'cells') {
                         handleToggleCell(r, c);
+                      } else if (editMode === 'select') {
+                        if (reg) {
+                          setActiveRegionId(reg.id);
+                        }
                       } else {
-                        handleCellRegionClick(r, c);
+                        // Assign regions mode: strictly guard against holes
+                        if (isPlayable) {
+                          handleCellRegionClick(r, c);
+                        }
                       }
                     }}
                     onContextMenu={(e) => {
@@ -658,7 +681,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       fontSize: '0.7rem',
                       fontWeight: 600,
                       color: isPlayable ? '#0f172a' : '#64748b',
-                      boxShadow: isPlayable ? '0 1px 2px rgba(0,0,0,0.08)' : 'none'
+                      opacity: hasActiveRegion && !isSelectedRegion ? (isPlayable ? 0.35 : 0.25) : 1,
+                      transform: isSelectedRegion ? 'scale(1.02)' : 'none',
+                      transition: 'all 0.15s ease',
+                      boxShadow: isSelectedRegion
+                        ? `0 0 0 2px #ffffff, 0 0 8px ${reg?.color || '#6366f1'}`
+                        : isPlayable
+                          ? '0 1px 2px rgba(0,0,0,0.08)'
+                          : 'none'
                     }}
                     title={isPlayable ? `Playable cell (${r}, ${c})` : 'Hole (tap to enable)'}
                   >
