@@ -122,18 +122,22 @@ export function rotateDomino(
 
   const parsedA = parseCellId(existing.cellA);
   const parsedB = parseCellId(existing.cellB);
-  const topSquareRow = Math.min(parsedA.row, parsedB.row);
-  const topSquareCol = Math.min(parsedA.col, parsedB.col);
+  let topSquareRow: number;
+  let topSquareCol: number;
+  let currentStep: number;
+
+  if (existing.orientation === 'vertical') {
+    topSquareRow = Math.min(parsedA.row, parsedB.row);
+    topSquareCol = parsedA.col;
+    currentStep = 1; // Down
+  } else {
+    topSquareRow = parsedA.row;
+    topSquareCol = Math.min(parsedA.col, parsedB.col);
+    currentStep = 0; // Right
+  }
+
   const topCellId = makeCellId(topSquareRow, topSquareCol);
   const reversedAnchor = existing.cellB === topCellId;
-
-  const otherParsed = existing.cellA === topCellId ? parsedB : parsedA;
-  let currentStep = 0;
-  if (otherParsed.col === topSquareCol + 1) currentStep = 0;
-  else if (otherParsed.row === topSquareRow + 1) currentStep = 1;
-  else if (otherParsed.col === topSquareCol - 1) currentStep = 2;
-  else if (otherParsed.row === topSquareRow - 1) currentStep = 3;
-
   const nextStep = (currentStep + 1) % 4;
   const nextRotation: DominoRotationState = !reversedAnchor
     ? (nextStep as DominoRotationState)

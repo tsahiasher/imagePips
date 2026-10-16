@@ -29,15 +29,18 @@ export interface SelectedPlacement {
   candidate: DominoPlacement;
   anchorRow: number;
   anchorCol: number;
-  reversedAnchor: boolean;
+  anchorIsHalfA: boolean;
   step: number; // 0: Right, 1: Down, 2: Left, 3: Up
+  totalSteps: number;
+  initialTotalSteps: number;
   isLegal: boolean;
 }
 
 /**
  * Finds the candidate cell pair for a domino rotated 90 degrees clockwise.
- * Always rotates around the top square of the domino, which remains strictly pinned in place
- * across all 4 rotation quadrants (Right -> Down -> Left -> Up -> Right).
+ * If selected when vertical: rotates around the top square.
+ * If selected when horizontal: rotates around the left square.
+ * The anchor square remains strictly pinned across all 4 rotation quadrants.
  */
 function getRotationStepCandidate(
   puzzle: Puzzle,
@@ -45,7 +48,7 @@ function getRotationStepCandidate(
   domino: DominoDefinition,
   anchorRow: number,
   anchorCol: number,
-  reversedAnchor: boolean,
+  anchorIsHalfA: boolean,
   step: number
 ): { placement: DominoPlacement; isLegal: boolean } {
   let otherRow = anchorRow;
@@ -60,10 +63,10 @@ function getRotationStepCandidate(
   const anchorId = makeCellId(anchorRow, anchorCol);
   const otherId = makeCellId(otherRow, otherCol);
 
-  const cellA = !reversedAnchor ? anchorId : otherId;
-  const cellB = !reversedAnchor ? otherId : anchorId;
+  const cellA = anchorIsHalfA ? anchorId : otherId;
+  const cellB = anchorIsHalfA ? otherId : anchorId;
   const orientation = step % 2 === 0 ? 'horizontal' : 'vertical';
-  const rotation: DominoRotationState = !reversedAnchor
+  const rotation: DominoRotationState = anchorIsHalfA
     ? (step as DominoRotationState)
     : (((step + 2) % 4) as DominoRotationState);
   const reversed = rotation === 2 || rotation === 3;
@@ -103,6 +106,9 @@ export function useDominoDrag(
   const selectedPlacementRef = useRef<SelectedPlacement | null>(null);
   selectedPlacementRef.current = selectedPlacement;
 
+  // Cumulative rotation angles for smooth clockwise animations
+  const [dominoAngles, setDominoAngles] = useState<Record<string, number>>({});
+
   const gameStateRef = useRef<GameState>(gameState);
   gameStateRef.current = gameState;
 
@@ -137,7 +143,7 @@ export function useDominoDrag(
         });
       }
     } else {
-      // Revert to original placement if candidate is illegal
+      // Revert to original placement if candidate is illegal when unselecting
       setGameState((prev) => {
         const restoredPlacements = placeDomino(prev.placements, sel.original);
         return {
@@ -145,6 +151,11 @@ export function useDominoDrag(
           placements: restoredPlacements
         };
       });
+      // Restore angle to original placement
+      setDominoAngles((prev) => ({
+        ...prev,
+        [sel.dominoId]: sel.original.rotation * 90
+      }));
     }
   }, [setGameState]);
 
@@ -356,23 +367,32 @@ export function useDominoDrag(
 
           if (domino && currentPlacement) {
             if (!currentSel || currentSel.dominoId !== dragState.dominoId) {
-              // Click on unselected domino: Select it (transparency 75%, thinner black edge)
+              // Click on unselected domino: First click selects.
+              // Do not unselect automatically, only when another domino is clicked.
               if (currentSel) {
                 commitOrRevertSelected();
               }
               const parsedA = parseCellId(currentPlacement.cellA);
               const parsedB = parseCellId(currentPlacement.cellB);
-              const anchorRow = Math.min(parsedA.row, parsedB.row);
-              const anchorCol = Math.min(parsedA.col, parsedB.col);
-              const anchorId = makeCellId(anchorRow, anchorCol);
-              const reversedAnchor = currentPlacement.cellB === anchorId;
+              let anchorRow: number;
+              let anchorCol: number;
+              let initialStep: number;
 
-              const otherParsed = currentPlacement.cellA === anchorId ? parsedB : parsedA;
-              let initialStep = 0;
-              if (otherParsed.col === anchorCol + 1) initialStep = 0; // Right
-              else if (otherParsed.row === anchorRow + 1) initialStep = 1; // Down
-              else if (otherParsed.col === anchorCol - 1) initialStep = 2; // Left
-              else if (otherParsed.row === anchorRow - 1) initialStep = 3; // Up
+              if (currentPlacement.orientation === 'vertical') {
+                // If selected when vertical: rotate around top square
+                anchorRow = Math.min(parsedA.row, parsedB.row);
+                anchorCol = parsedA.col;
+                initialStep = 1; // Down
+              } else {
+                // If selected when horizontal: rotate around left square
+                anchorRow = parsedA.row;
+                anchorCol = Math.min(parsedA.col, parsedB.col);
+                initialStep = 0; // Right
+              }
+
+              const anchorId = makeCellId(anchorRow, anchorCol);
+              const anchorIsHalfA = currentPlacement.cellA === anchorId;
+              const initialTotalSteps = initialStep;
 
               const newSel: SelectedPlacement = {
                 dominoId: dragState.dominoId,
@@ -380,33 +400,46 @@ export function useDominoDrag(
                 candidate: currentPlacement,
                 anchorRow,
                 anchorCol,
-                reversedAnchor,
+                anchorIsHalfA,
                 step: initialStep,
+                totalSteps: initialTotalSteps,
+                initialTotalSteps,
                 isLegal: true
               };
               setSelectedPlacement(newSel);
 
+              setDominoAngles((prev) => ({
+                ...prev,
+                [dragState.dominoId]: initialTotalSteps * 90
+              }));
+
+              // Do not start any timer on first click - stays selected until another domino is clicked
               if (selectionTimerRef.current) {
                 clearTimeout(selectionTimerRef.current);
+                selectionTimerRef.current = null;
               }
-              selectionTimerRef.current = setTimeout(() => {
-                commitOrRevertSelected();
-              }, 1000);
             } else {
-              // Click on already selected domino: Rotate 90 deg clockwise around the pinned top square
+              // Click on already selected domino: Second click rotates the domino
               const otherPlacements = gameState.placements.filter(
                 (p) => p.dominoId !== dragState.dominoId
               );
-              const nextStep = (currentSel.step + 1) % 4;
+              const nextTotalSteps = currentSel.totalSteps + 1;
+              const nextStep = nextTotalSteps % 4;
               const cand = getRotationStepCandidate(
                 gameState.puzzle,
                 otherPlacements,
                 domino,
                 currentSel.anchorRow,
                 currentSel.anchorCol,
-                currentSel.reversedAnchor,
+                currentSel.anchorIsHalfA,
                 nextStep
               );
+
+              const nextAngle = nextTotalSteps * 90;
+              setDominoAngles((prev) => ({
+                ...prev,
+                [dragState.dominoId]: nextAngle
+              }));
 
               const updatedSel: SelectedPlacement = {
                 dominoId: dragState.dominoId,
@@ -414,19 +447,27 @@ export function useDominoDrag(
                 candidate: cand.placement,
                 anchorRow: currentSel.anchorRow,
                 anchorCol: currentSel.anchorCol,
-                reversedAnchor: currentSel.reversedAnchor,
+                anchorIsHalfA: currentSel.anchorIsHalfA,
                 step: nextStep,
+                totalSteps: nextTotalSteps,
+                initialTotalSteps: currentSel.initialTotalSteps,
                 isLegal: cand.isLegal
               };
               setSelectedPlacement(updatedSel);
 
-              // Reset 1-second countdown from the last click
+              // Clear previous timer
               if (selectionTimerRef.current) {
                 clearTimeout(selectionTimerRef.current);
+                selectionTimerRef.current = null;
               }
-              selectionTimerRef.current = setTimeout(() => {
-                commitOrRevertSelected();
-              }, 1000);
+
+              // If in legal position, and only then, unselect after 1 second.
+              // If not in legal position, do nothing (no timer, do not unselect automatically, do not revert).
+              if (cand.isLegal) {
+                selectionTimerRef.current = setTimeout(() => {
+                  commitOrRevertSelected();
+                }, 1000);
+              }
             }
           }
         } else {
@@ -521,7 +562,10 @@ export function useDominoDrag(
   return {
     dragState,
     dragCandidate,
+    selectedPlacement,
     selectedDominoId: selectedPlacement?.dominoId ?? null,
+    draggingDominoId: dragState?.hasMoved ? dragState.dominoId : null,
+    dominoAngles,
     effectivePlacements,
     deselectDomino: commitOrRevertSelected,
     handlePointerDown,

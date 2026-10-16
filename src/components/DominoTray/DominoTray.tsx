@@ -50,6 +50,24 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
   const expectedRows = Math.max(1, Math.ceil(count / colsPerRow));
   const expectedContentHeight = expectedRows * slotHeight + (expectedRows - 1) * gap;
 
+  // Track monotonic angles for smooth clockwise tray rotations
+  const prevRotRef = React.useRef<Record<string, number>>({});
+  const anglesRef = React.useRef<Record<string, number>>({});
+
+  allDominoes.forEach((domino) => {
+    const rot = dominoRotations[domino.id] ?? 0;
+    const prev = prevRotRef.current[domino.id];
+    if (prev === undefined) {
+      prevRotRef.current[domino.id] = rot;
+      anglesRef.current[domino.id] = rot * 90;
+    } else if (prev !== rot) {
+      const diff = (rot - prev + 4) % 4;
+      prevRotRef.current[domino.id] = rot;
+      anglesRef.current[domino.id] =
+        (anglesRef.current[domino.id] ?? (prev * 90)) + (diff === 0 ? 0 : diff * 90);
+    }
+  });
+
   return (
     <div
       className={`domino-tray-wrapper ${className}`}
@@ -88,6 +106,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
           const rot = dominoRotations[domino.id] ?? 0;
           const isSelected = selectedDominoId === domino.id;
           const isVertical = rot % 2 !== 0;
+          const trayAngle = anglesRef.current[domino.id] ?? (rot * 90);
 
           return (
             <div
@@ -143,7 +162,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
                 <div
                   className="tray-domino-item"
                   style={{
-                    position: isVertical ? 'absolute' : 'relative',
+                    position: 'absolute',
                     zIndex: isVertical ? 20 : 1,
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -152,17 +171,21 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
                     borderRadius: '8px',
                     background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
                     border: isSelected ? '1.5px solid #6366f1' : '1.5px solid transparent',
-                    opacity: isDragging ? 0 : isVertical ? 0.82 : 1,
+                    opacity: isDragging ? 0 : isVertical ? 0.88 : 1,
                     filter: isVertical
                       ? 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28))'
                       : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.10))',
-                    pointerEvents: 'none',
-                    transition: 'opacity 0.15s ease, filter 0.15s ease'
+                    transform: `rotate(${trayAngle}deg)`,
+                    transformOrigin: 'center center',
+                    transition: isDragging
+                      ? 'none'
+                      : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.15s ease, filter 0.15s ease',
+                    pointerEvents: 'none'
                   }}
                 >
                   <Domino
                     domino={domino}
-                    rotation={rot}
+                    rotation={0}
                     cellSize={trayCellSize}
                     ariaSelected={isSelected}
                   />

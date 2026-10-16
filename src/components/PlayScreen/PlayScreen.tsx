@@ -41,7 +41,9 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
   const {
     dragState,
     dragCandidate,
+    selectedPlacement,
     selectedDominoId,
+    draggingDominoId,
     effectivePlacements,
     deselectDomino,
     handlePointerDown,
@@ -177,6 +179,11 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
           position: 'relative',
           background: '#ffffff'
         }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            deselectDomino();
+          }
+        }}
       >
         <PuzzleBoard
           puzzle={puzzle}
@@ -185,6 +192,8 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
           cellSize={cellSize}
           dragCandidate={dragCandidate}
           selectedDominoId={selectedDominoId}
+          selectedPlacement={selectedPlacement}
+          draggingDominoId={draggingDominoId}
           onDominoPointerDown={handlePointerDown}
           onCellClick={deselectDomino}
           onEmptyBoardClick={deselectDomino}

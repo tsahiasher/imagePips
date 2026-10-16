@@ -2,7 +2,8 @@ import React from 'react';
 import { Constraint } from '../../domain/constraints';
 import { DominoDefinition, DominoRotationState } from '../../domain/domino';
 import { DominoPlacement } from '../../domain/placement';
-import { CellId, Puzzle, Region, parseCellId } from '../../domain/puzzle';
+import { CellId, Puzzle, Region, makeCellId, parseCellId } from '../../domain/puzzle';
+import { SelectedPlacement } from '../../game/useDominoDrag';
 import { ConditionBadge } from '../ConditionBadge/ConditionBadge';
 import { Domino } from '../Domino/Domino';
 import { PuzzleCell } from '../PuzzleCell/PuzzleCell';
@@ -23,6 +24,8 @@ interface PuzzleBoardProps {
   cellSize?: number;
   dragCandidate?: DragCandidate | null;
   selectedDominoId?: string | null;
+  selectedPlacement?: SelectedPlacement | null;
+  draggingDominoId?: string | null;
   activeRegionId?: string | null;
   gridBounds?: { minRow: number; maxRow: number; minCol: number; maxCol: number };
   showHoles?: boolean;
@@ -43,6 +46,8 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   cellSize = 72,
   dragCandidate = null,
   selectedDominoId = null,
+  selectedPlacement = null,
+  draggingDominoId = null,
   activeRegionId = null,
   gridBounds,
   showHoles = false,
@@ -266,35 +271,75 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
         {/* Placed Dominoes */}
         <g className="placed-dominoes">
           {placements.map((placement) => {
+            if (draggingDominoId && placement.dominoId === draggingDominoId) {
+              return null; // Hidden from board while being dragged under the user's cursor
+            }
+
             const domino = dominoMap.get(placement.dominoId);
             if (!domino) return null;
 
-            const parsedA = parseCellId(placement.cellA);
-            const parsedB = parseCellId(placement.cellB);
-            if (isNaN(parsedA.row) || isNaN(parsedB.row)) return null;
-
-            // Center inside cell pair bounding box
+            const isSelected = selectedDominoId === placement.dominoId;
             const margin = Math.max(3, cellSize * 0.05);
-            const topRow = Math.min(parsedA.row, parsedB.row);
-            const leftCol = Math.min(parsedA.col, parsedB.col);
-            const x = padding + (leftCol - minCol) * cellSize + margin;
-            const y = padding + (topRow - minRow) * cellSize + margin;
+
+            let anchorRow: number;
+            let anchorCol: number;
+            let anchorIsHalfA: boolean;
+            let angle: number;
+            let isRotating = false;
+
+            if (isSelected && selectedPlacement) {
+              // Lock strictly to the pinned anchor square across all rotation clicks
+              anchorRow = selectedPlacement.anchorRow;
+              anchorCol = selectedPlacement.anchorCol;
+              anchorIsHalfA = selectedPlacement.anchorIsHalfA;
+              angle = selectedPlacement.totalSteps * 90;
+              isRotating = selectedPlacement.totalSteps !== selectedPlacement.initialTotalSteps;
+            } else {
+              const parsedA = parseCellId(placement.cellA);
+              const parsedB = parseCellId(placement.cellB);
+              if (isNaN(parsedA.row) || isNaN(parsedB.row)) return null;
+
+              if (placement.orientation === 'vertical') {
+                anchorRow = Math.min(parsedA.row, parsedB.row);
+                anchorCol = parsedA.col;
+                angle = 90;
+              } else {
+                anchorRow = parsedA.row;
+                anchorCol = Math.min(parsedA.col, parsedB.col);
+                angle = 0;
+              }
+
+              const anchorId = makeCellId(anchorRow, anchorCol);
+              anchorIsHalfA = placement.cellA === anchorId;
+            }
+
+            const anchorCenterX = padding + (anchorCol - minCol + 0.5) * cellSize;
+            const anchorCenterY = padding + (anchorRow - minRow + 0.5) * cellSize;
+            const anchorInsideX = cellSize / 2 - margin;
+            const anchorInsideY = cellSize / 2 - margin;
 
             return (
               <g
                 key={placement.dominoId}
-                transform={`translate(${x}, ${y})`}
-                style={{ cursor: 'pointer' }}
+                transform={`translate(${anchorCenterX}, ${anchorCenterY}) rotate(${angle})`}
+                style={{
+                  cursor: 'pointer',
+                  transform: `translate(${anchorCenterX}px, ${anchorCenterY}px) rotate(${angle}deg)`,
+                  transformOrigin: '0 0',
+                  transition: isRotating ? 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none'
+                }}
                 onPointerDown={(e) => onDominoPointerDown?.(e, placement.dominoId, true)}
                 onClick={() => onDominoClick?.(placement.dominoId)}
               >
-                <Domino
-                  domino={domino}
-                  rotation={placement.rotation}
-                  cellSize={cellSize}
-                  isPlaced={true}
-                  isSelected={placement.dominoId === selectedDominoId}
-                />
+                <g transform={`translate(${-anchorInsideX}, ${-anchorInsideY})`}>
+                  <Domino
+                    domino={domino}
+                    rotation={anchorIsHalfA ? 0 : 2}
+                    cellSize={cellSize}
+                    isPlaced={true}
+                    isSelected={isSelected}
+                  />
+                </g>
               </g>
             );
           })}
@@ -305,13 +350,13 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           <g className="drag-candidate-preview" opacity={0.65} pointerEvents="none">
             {(() => {
               const domino = dominoMap.get(dragCandidate.dominoId);
-              const cellA = cellMap.get(dragCandidate.cellA);
-              const cellB = cellMap.get(dragCandidate.cellB);
-              if (!domino || !cellA || !cellB) return null;
+              const parsedA = parseCellId(dragCandidate.cellA);
+              const parsedB = parseCellId(dragCandidate.cellB);
+              if (!domino || isNaN(parsedA.row) || isNaN(parsedB.row)) return null;
 
               const margin = Math.max(3, cellSize * 0.05);
-              const topRow = Math.min(cellA.row, cellB.row);
-              const leftCol = Math.min(cellA.col, cellB.col);
+              const topRow = Math.min(parsedA.row, parsedB.row);
+              const leftCol = Math.min(parsedA.col, parsedB.col);
               const x = padding + (leftCol - minCol) * cellSize + margin;
               const y = padding + (topRow - minRow) * cellSize + margin;
 
