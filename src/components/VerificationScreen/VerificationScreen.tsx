@@ -1,28 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ArrowLeft,
   Play,
   Edit3,
-  Plus,
-  Trash2,
+  Download,
   AlertTriangle,
   AlertCircle
 } from 'lucide-react';
 import { Constraint } from '../../domain/constraints';
 import { Cell, Puzzle, Region, computeConnectedComponents } from '../../domain/puzzle';
 import { PuzzleBoard } from '../PuzzleBoard/PuzzleBoard';
-
-const PALETTE = [
-  '#0284c7', // Cyan
-  '#9333ea', // Purple
-  '#16a34a', // Green
-  '#ea580c', // Orange
-  '#db2777', // Pink
-  '#0d9488', // Teal
-  '#e11d48', // Rose
-  '#ca8a04', // Amber
-  '#64748b'  // Slate
-];
+import { PALETTE, RegionListEditor } from '../EditorShared/RegionListEditor';
+import { DominoInventoryEditor } from '../EditorShared/DominoInventoryEditor';
+import { SolvabilityBadge } from '../EditorShared/SolvabilityBadge';
 
 interface VerificationScreenProps {
   initialPuzzle: Puzzle;
@@ -42,6 +32,7 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   const [activeRegionId, setActiveRegionId] = useState<string | null>(
     initialPuzzle.regions[0]?.id ?? null
   );
+  const [drawerTab, setDrawerTab] = useState<'regions' | 'dominoes'>('regions');
 
   // Consistency check
   const totalPlayableCells = puzzle.cells.length;
@@ -49,6 +40,109 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   const isConsistent = totalPlayableCells === totalDominoSlots;
 
   const [editMode, setEditMode] = useState<'regions' | 'cells'>('regions');
+
+  // Pinch-to-zoom and pan state for mobile comparison view
+  const [zoom, setZoom] = useState<number>(1);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const gestureRef = useRef<{
+    mode: 'none' | 'pinch' | 'pan';
+    startDist: number;
+    startZoom: number;
+    startPanX: number;
+    startPanY: number;
+    startTouchX: number;
+    startTouchY: number;
+  }>({
+    mode: 'none',
+    startDist: 0,
+    startZoom: 1,
+    startPanX: 0,
+    startPanY: 0,
+    startTouchX: 0,
+    startTouchY: 0
+  });
+
+  const getTouchDistance = (touches: React.TouchList): number => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  };
+
+  const handleCompareTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dist = getTouchDistance(e.touches);
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      gestureRef.current = {
+        mode: 'pinch',
+        startDist: Math.max(10, dist),
+        startZoom: zoom,
+        startPanX: pan.x,
+        startPanY: pan.y,
+        startTouchX: midX,
+        startTouchY: midY
+      };
+    } else if (e.touches.length === 1 && zoom > 1.02) {
+      gestureRef.current = {
+        mode: 'pan',
+        startDist: 0,
+        startZoom: zoom,
+        startPanX: pan.x,
+        startPanY: pan.y,
+        startTouchX: e.touches[0].clientX,
+        startTouchY: e.touches[0].clientY
+      };
+    } else {
+      gestureRef.current.mode = 'none';
+    }
+  };
+
+  const handleCompareTouchMove = (e: React.TouchEvent) => {
+    if (gestureRef.current.mode === 'pinch' && e.touches.length === 2) {
+      const dist = getTouchDistance(e.touches);
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const nextZoom = Math.min(4, Math.max(1, gestureRef.current.startZoom * (dist / gestureRef.current.startDist)));
+      const dx = midX - gestureRef.current.startTouchX;
+      const dy = midY - gestureRef.current.startTouchY;
+      setZoom(nextZoom);
+      if (nextZoom <= 1.02) {
+        setPan({ x: 0, y: 0 });
+      } else {
+        setPan({
+          x: gestureRef.current.startPanX + dx,
+          y: gestureRef.current.startPanY + dy
+        });
+      }
+    } else if (gestureRef.current.mode === 'pan' && e.touches.length === 1 && zoom > 1.02) {
+      const dx = e.touches[0].clientX - gestureRef.current.startTouchX;
+      const dy = e.touches[0].clientY - gestureRef.current.startTouchY;
+      setPan({
+        x: gestureRef.current.startPanX + dx,
+        y: gestureRef.current.startPanY + dy
+      });
+    }
+  };
+
+  const handleCompareTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) {
+      gestureRef.current.mode = 'none';
+      if (zoom <= 1.03) {
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+      }
+    } else if (e.touches.length === 1 && zoom > 1.02) {
+      gestureRef.current = {
+        mode: 'pan',
+        startDist: 0,
+        startZoom: zoom,
+        startPanX: pan.x,
+        startPanY: pan.y,
+        startTouchX: e.touches[0].clientX,
+        startTouchY: e.touches[0].clientY
+      };
+    }
+  };
 
   // Toggle cell playable/hole
   const handleToggleCell = (cellId: string) => {
@@ -88,6 +182,13 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
     } else {
       handleCellClick(cellId);
     }
+  };
+
+  // Direct tap-to-edit on any condition badge on the board
+  const handleBadgeClick = (regionId: string) => {
+    setShowEditPane(true);
+    setDrawerTab('regions');
+    setActiveRegionId(regionId);
   };
 
   // Toggle cell membership in active region
@@ -170,6 +271,32 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
     }
   };
 
+  const handleUpdateRegionColor = (id: string, color: string) => {
+    setPuzzle((prev) => ({
+      ...prev,
+      regions: prev.regions.map((r) => (r.id === id ? { ...r, color } : r))
+    }));
+  };
+
+  const handleUpdateRegionConstraint = (id: string, constraint: Constraint | null) => {
+    setPuzzle((prev) => ({
+      ...prev,
+      regions: prev.regions.map((r) => (r.id === id ? { ...r, constraint } : r))
+    }));
+  };
+
+  const handleExportPuzzle = () => {
+    const blob = new Blob([JSON.stringify(puzzle, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(puzzle.name || 'imported_puzzle').toLowerCase().replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleStart = () => {
     if (!isConsistent) {
       alert(
@@ -202,31 +329,58 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
           alignItems: 'center',
           padding: '8px 14px',
           background: '#ffffff',
-          borderBottom: '1px solid #e2e8f0'
+          borderBottom: '1px solid #e2e8f0',
+          gap: '8px',
+          flexWrap: 'wrap'
         }}
       >
-        <button
-          onClick={onBack}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            borderRadius: '8px',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            color: '#0f172a',
-            fontWeight: 600,
-            fontSize: '0.85rem',
-            cursor: 'pointer'
-          }}
-        >
-          <ArrowLeft size={16} />
-          <span>Back</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={onBack}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              cursor: 'pointer'
+            }}
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+
+          <SolvabilityBadge puzzle={puzzle} />
+        </div>
 
         {/* Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            onClick={handleExportPuzzle}
+            title="Save reconstructed puzzle as JSON"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              color: '#0f172a',
+              fontWeight: 600,
+              fontSize: '0.82rem',
+              cursor: 'pointer'
+            }}
+          >
+            <Download size={14} />
+            <span>Save</span>
+          </button>
+
           <button
             onClick={() => setShowEditPane((prev) => !prev)}
             style={{
@@ -322,26 +476,57 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
           <AlertCircle size={18} color="#d97706" style={{ flexShrink: 0 }} />
           <span>
             {puzzle.regions.filter((r) => !r.constraint && r.color !== '#64748b' && r.color !== '#e2e8f0' && r.color !== '#dfccc4').length} region(s) have unknown conditions.
-            Select the region in the sidebar to assign its constraint rule.
+            Tap a badge or open Edit to assign its constraint rule.
           </span>
         </div>
       )}
 
       {/* Main verification comparison area */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left Side: Side-by-side Original and Reconstructed Puzzle */}
+      <div className="verification-main-layout" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Left/Top Side: Side-by-side Original and Reconstructed Puzzle */}
         <div
+          data-zoomed={zoom > 1.02 ? 'true' : 'false'}
+          onTouchStart={handleCompareTouchStart}
+          onTouchMove={handleCompareTouchMove}
+          onTouchEnd={handleCompareTouchEnd}
+          onTouchCancel={handleCompareTouchEnd}
           style={{
             flex: 1,
+            minHeight: 0,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
             padding: '10px',
             overflow: 'hidden',
-            background: '#f1f5f9'
+            background: '#f1f5f9',
+            touchAction: zoom > 1.02 ? 'none' : 'pan-x pan-y pinch-zoom'
           }}
         >
+          {zoom > 1.03 && (
+            <button
+              type="button"
+              onClick={() => {
+                setZoom(1);
+                setPan({ x: 0, y: 0 });
+              }}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                zIndex: 50,
+                padding: '6px 12px',
+                borderRadius: '999px',
+                background: '#0f172a',
+                color: '#ffffff',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+              }}
+            >
+              Reset Zoom ({Math.round(zoom * 100)}%)
+            </button>
+          )}
           <div
             className="verification-side-by-side"
             style={{
@@ -350,7 +535,9 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
               gap: '12px',
               width: '100%',
               height: '100%',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              transform: zoom > 1.01 ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` : undefined,
+              transformOrigin: 'center center'
             }}
           >
             {/* Left: Original Screenshot */}
@@ -394,7 +581,7 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
                 border: '1px solid #e2e8f0'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '8px', gap: '6px', flexWrap: 'wrap' }}>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                   RECONSTRUCTED PUZZLE
                 </div>
@@ -434,301 +621,97 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
                 placements={[]}
                 cellSize={56}
                 onCellClick={showEditPane ? handleCellInteraction : undefined}
+                onRegionBadgeClick={handleBadgeClick}
               />
             </div>
           </div>
         </div>
 
-        {/* Right Correction Sidebar */}
+        {/* Correction Sidebar / Mobile Bottom Drawer */}
         {showEditPane && (
           <aside
+            className="verification-edit-drawer"
             style={{
               width: '360px',
               borderLeft: '1px solid #e2e8f0',
-              padding: '16px',
+              padding: '14px',
               overflowY: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: '12px',
               background: '#ffffff'
             }}
           >
-            {/* Quick instructions */}
-            <div style={{ padding: '8px 12px', borderRadius: '8px', background: '#eef2ff', border: '1px solid #c7d2fe', fontSize: '0.8rem', color: '#3730a3' }}>
-              Click a region below, then click cells on the board to add or remove them.
+            {/* Quick tab switcher inside the drawer */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '6px',
+                background: '#f1f5f9',
+                padding: '4px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setDrawerTab('regions')}
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  background: drawerTab === 'regions' ? '#ffffff' : 'transparent',
+                  color: drawerTab === 'regions' ? '#0f172a' : '#64748b',
+                  boxShadow: drawerTab === 'regions' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                  fontSize: '0.8rem',
+                  fontWeight: 700
+                }}
+              >
+                Regions ({puzzle.regions.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrawerTab('dominoes')}
+                style={{
+                  flex: 1,
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  background: drawerTab === 'dominoes' ? '#ffffff' : 'transparent',
+                  color: drawerTab === 'dominoes' ? '#0f172a' : '#64748b',
+                  boxShadow: drawerTab === 'dominoes' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                  fontSize: '0.8rem',
+                  fontWeight: 700
+                }}
+              >
+                Dominoes ({puzzle.dominoes.length})
+              </button>
             </div>
 
-            {/* Regions & Constraints */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Regions & Constraints</h3>
-                <button
-                  onClick={handleAddRegion}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '5px 12px',
-                    borderRadius: '6px',
-                    background: '#4f46e5',
-                    color: '#ffffff',
-                    fontSize: '0.8rem',
-                    fontWeight: 600
-                  }}
-                >
-                  <Plus size={14} /> Region
-                </button>
-              </div>
+            {drawerTab === 'regions' ? (
+              <>
+                <div style={{ padding: '8px 12px', borderRadius: '8px', background: '#eef2ff', border: '1px solid #c7d2fe', fontSize: '0.78rem', color: '#3730a3' }}>
+                  Tap a badge on the board or select a region below, then tap cells on the board to add or remove them.
+                </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {puzzle.regions.map((reg) => {
-                  const isActive = activeRegionId === reg.id;
-                  return (
-                    <div
-                      key={reg.id}
-                      onClick={() => setActiveRegionId(reg.id)}
-                      style={{
-                        padding: '10px',
-                        borderRadius: '8px',
-                        background: isActive ? '#eef2ff' : '#f8fafc',
-                        border: `1.5px solid ${isActive ? '#6366f1' : '#e2e8f0'}`,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <input
-                            type="color"
-                            value={reg.color}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setPuzzle((prev) => ({
-                                ...prev,
-                                regions: prev.regions.map((r) => (r.id === reg.id ? { ...r, color: val } : r))
-                              }));
-                            }}
-                            style={{ width: '22px', height: '22px', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}
-                          />
-                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
-                            {reg.cellIds.length} cells
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRegion(reg.id);
-                          }}
-                          style={{
-                            background: '#fee2e2',
-                            border: '1px solid #fecaca',
-                            color: '#dc2626',
-                            borderRadius: '6px',
-                            padding: '3px 6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
-                        <select
-                          value={reg.constraint ? reg.constraint.type : 'none'}
-                          onChange={(e) => {
-                            const type = e.target.value;
-                            let newConstraint: Constraint | null = null;
-                            if (type === 'sum') newConstraint = { type: 'sum', value: 10 };
-                            else if (type === 'lessThan') newConstraint = { type: 'lessThan', value: 5 };
-                            else if (type === 'greaterThan') newConstraint = { type: 'greaterThan', value: 5 };
-                            else if (type === 'equal') newConstraint = { type: 'equal' };
-                            else if (type === 'different') newConstraint = { type: 'different' };
-
-                            setPuzzle((prev) => ({
-                              ...prev,
-                              regions: prev.regions.map((r) => (r.id === reg.id ? { ...r, constraint: newConstraint } : r))
-                            }));
-                          }}
-                          style={{
-                            background: '#ffffff',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '6px',
-                            padding: '4px 8px',
-                            fontSize: '0.8rem',
-                            color: '#0f172a',
-                            fontWeight: 600
-                          }}
-                        >
-                          <option value="none">No constraint</option>
-                          <option value="sum">Sum</option>
-                          <option value="lessThan">Less Than (&lt;)</option>
-                          <option value="greaterThan">Greater Than (&gt;)</option>
-                          <option value="equal">Equal (=)</option>
-                          <option value="different">Different (≠)</option>
-                        </select>
-
-                        {reg.constraint && 'value' in reg.constraint && (
-                          <input
-                            type="number"
-                            value={reg.constraint.value}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value, 10);
-                              if (!isNaN(val)) {
-                                setPuzzle((prev) => ({
-                                  ...prev,
-                                  regions: prev.regions.map((r) =>
-                                    r.id === reg.id && r.constraint && 'value' in r.constraint
-                                      ? { ...r, constraint: { ...r.constraint, value: val } }
-                                      : r
-                                  )
-                                }));
-                              }
-                            }}
-                            style={{
-                              width: '56px',
-                              background: '#ffffff',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '6px',
-                              padding: '4px 6px',
-                              fontSize: '0.8rem',
-                              color: '#0f172a',
-                              fontWeight: 700
-                            }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Dominoes Inventory Editor */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
-                  Domino Inventory ({puzzle.dominoes.length})
-                </h3>
-                <button
-                  onClick={handleAddDomino}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '5px 12px',
-                    borderRadius: '6px',
-                    background: '#4f46e5',
-                    color: '#ffffff',
-                    fontSize: '0.8rem',
-                    fontWeight: 600
-                  }}
-                >
-                  <Plus size={14} /> Domino
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {puzzle.dominoes.map((d, idx) => (
-                  <div
-                    key={d.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0'
-                    }}
-                  >
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>
-                      #{idx + 1}
-                    </span>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <select
-                        value={d.a}
-                        onChange={(e) => handleUpdateDominoValue(d.id, 'a', parseInt(e.target.value, 10))}
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '4px',
-                          padding: '2px 6px',
-                          fontWeight: 700,
-                          color: '#0f172a'
-                        }}
-                      >
-                        {[0, 1, 2, 3, 4, 5, 6].map((v) => (
-                          <option key={v} value={v}>
-                            {v}
-                          </option>
-                        ))}
-                      </select>
-
-                      <span style={{ color: '#cbd5e1' }}>|</span>
-
-                      <select
-                        value={d.b}
-                        onChange={(e) => handleUpdateDominoValue(d.id, 'b', parseInt(e.target.value, 10))}
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '4px',
-                          padding: '2px 6px',
-                          fontWeight: 700,
-                          color: '#0f172a'
-                        }}
-                      >
-                        {[0, 1, 2, 3, 4, 5, 6].map((v) => (
-                          <option key={v} value={v}>
-                            {v}
-                          </option>
-                        ))}
-                      </select>
-
-                      <button
-                        onClick={() => handleSwapDomino(d.id)}
-                        style={{
-                          fontSize: '0.72rem',
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                          background: '#ffffff',
-                          border: '1px solid #cbd5e1',
-                          color: '#334155',
-                          fontWeight: 600
-                        }}
-                        title="Swap [A|B] to [B|A]"
-                      >
-                        Swap
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => handleDeleteDomino(d.id)}
-                      style={{
-                        background: '#fee2e2',
-                        border: '1px solid #fecaca',
-                        color: '#dc2626',
-                        borderRadius: '6px',
-                        padding: '3px 6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+                <RegionListEditor
+                  regions={puzzle.regions}
+                  activeRegionId={activeRegionId}
+                  onSelectRegion={setActiveRegionId}
+                  onAddRegion={handleAddRegion}
+                  onDeleteRegion={handleDeleteRegion}
+                  onUpdateRegionColor={handleUpdateRegionColor}
+                  onUpdateRegionConstraint={handleUpdateRegionConstraint}
+                />
+              </>
+            ) : (
+              <DominoInventoryEditor
+                dominoes={puzzle.dominoes}
+                onAddDomino={handleAddDomino}
+                onDeleteDomino={handleDeleteDomino}
+                onUpdateDominoValue={handleUpdateDominoValue}
+                onSwapDomino={handleSwapDomino}
+              />
+            )}
           </aside>
         )}
       </div>

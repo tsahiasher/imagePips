@@ -1,6 +1,5 @@
 {
   "game": "game3.jpg",
-  "timestamp": "2026-10-15T06:13:33.779Z",
   "validation": {
     "valid": true,
     "errors": [],
@@ -133,37 +132,47 @@
   "dominoes": [
     {
       "id": "d_1",
+      "a": 0,
+      "b": 0,
       "values": [
-        null,
-        null
+        0,
+        0
       ]
     },
     {
       "id": "d_2",
+      "a": 6,
+      "b": 6,
       "values": [
-        null,
-        null
+        6,
+        6
       ]
     },
     {
       "id": "d_3",
+      "a": 5,
+      "b": 3,
       "values": [
-        null,
-        null
+        5,
+        3
       ]
     },
     {
       "id": "d_4",
+      "a": 4,
+      "b": 2,
       "values": [
-        null,
-        null
+        4,
+        2
       ]
     },
     {
       "id": "d_5",
+      "a": 3,
+      "b": 2,
       "values": [
-        null,
-        null
+        3,
+        2
       ]
     }
   ],

@@ -1,20 +1,11 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Plus, Trash2, Play, CheckCircle2, AlertTriangle, Download, Upload } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowLeft, Play, Download, Upload } from 'lucide-react';
 import { Constraint } from '../../domain/constraints';
 import { DominoDefinition } from '../../domain/domino';
 import { Cell, Puzzle, Region, computeConnectedComponents } from '../../domain/puzzle';
-
-const PALETTE = [
-  '#0284c7', // Cyan
-  '#9333ea', // Purple
-  '#16a34a', // Green
-  '#ea580c', // Orange
-  '#db2777', // Pink
-  '#0d9488', // Teal
-  '#e11d48', // Rose
-  '#ca8a04', // Amber
-  '#64748b'  // Slate
-];
+import { PALETTE, RegionListEditor } from '../EditorShared/RegionListEditor';
+import { DominoInventoryEditor } from '../EditorShared/DominoInventoryEditor';
+import { SolvabilityBadge } from '../EditorShared/SolvabilityBadge';
 
 interface ManualEditorProps {
   onStartPuzzle: (puzzle: Puzzle) => void;
@@ -27,16 +18,21 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
   onCancel,
   initialPuzzle
 }) => {
-  const [rows, setRows] = useState(initialPuzzle ? Math.max(...initialPuzzle.cells.map(c => c.row)) + 1 : 4);
-  const [cols, setCols] = useState(initialPuzzle ? Math.max(...initialPuzzle.cells.map(c => c.col)) + 1 : 6);
+  const [rows, setRows] = useState(
+    initialPuzzle ? Math.max(...initialPuzzle.cells.map((c) => c.row)) + 1 : 4
+  );
+  const [cols, setCols] = useState(
+    initialPuzzle ? Math.max(...initialPuzzle.cells.map((c) => c.col)) + 1 : 6
+  );
   const [name, setName] = useState(initialPuzzle?.name ?? 'Custom Puzzle');
+  const [editMode, setEditMode] = useState<'regions' | 'cells'>('regions');
 
   // Playable cells set (key: "r,c")
   const [playableKeys, setPlayableKeys] = useState<Set<string>>(() => {
     if (initialPuzzle) {
-      return new Set(initialPuzzle.cells.map(c => `${c.row},${c.col}`));
+      return new Set(initialPuzzle.cells.map((c) => `${c.row},${c.col}`));
     }
-    // Default 4x4 with 8 cells playable
+    // Default 3x4 with 12 cells playable
     const s = new Set<string>();
     for (let r = 0; r < 3; r++) {
       for (let c = 0; c < 4; c++) {
@@ -87,10 +83,12 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
     if (next.has(key)) {
       next.delete(key);
       // Also remove from any regions
-      setRegions(prev => prev.map(reg => ({
-        ...reg,
-        cellIds: reg.cellIds.filter(id => id !== key)
-      })));
+      setRegions((prev) =>
+        prev.map((reg) => ({
+          ...reg,
+          cellIds: reg.cellIds.filter((id) => id !== key)
+        }))
+      );
     } else {
       next.add(key);
     }
@@ -102,28 +100,30 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
     const key = `${r},${c}`;
     if (!playableKeys.has(key) || !activeRegionId) return;
 
-    setRegions(prev => prev.map(reg => {
-      if (reg.id === activeRegionId) {
-        const has = reg.cellIds.includes(key);
-        return {
-          ...reg,
-          cellIds: has ? reg.cellIds.filter(id => id !== key) : [...reg.cellIds, key]
-        };
-      } else {
-        // Remove from other regions to keep clean separation
-        return {
-          ...reg,
-          cellIds: reg.cellIds.filter(id => id !== key)
-        };
-      }
-    }));
+    setRegions((prev) =>
+      prev.map((reg) => {
+        if (reg.id === activeRegionId) {
+          const has = reg.cellIds.includes(key);
+          return {
+            ...reg,
+            cellIds: has ? reg.cellIds.filter((id) => id !== key) : [...reg.cellIds, key]
+          };
+        } else {
+          // Remove from other regions to keep clean separation
+          return {
+            ...reg,
+            cellIds: reg.cellIds.filter((id) => id !== key)
+          };
+        }
+      })
+    );
   };
 
   // Add region
   const handleAddRegion = () => {
     const newId = `reg_${Date.now()}`;
     const color = PALETTE[regions.length % PALETTE.length];
-    setRegions(prev => [
+    setRegions((prev) => [
       ...prev,
       {
         id: newId,
@@ -137,22 +137,62 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
 
   // Delete region
   const handleDeleteRegion = (id: string) => {
-    setRegions(prev => prev.filter(r => r.id !== id));
+    setRegions((prev) => prev.filter((r) => r.id !== id));
     if (activeRegionId === id) {
-      setActiveRegionId(regions.find(r => r.id !== id)?.id ?? null);
+      setActiveRegionId(regions.find((r) => r.id !== id)?.id ?? null);
     }
   };
 
-  // Add domino
-  const handleAddDomino = () => {
-    const newId = `d_${Date.now()}`;
-    setDominoes(prev => [...prev, { id: newId, a: 0, b: 0 }]);
+  const handleUpdateRegionColor = (id: string, color: string) => {
+    setRegions((prev) => prev.map((r) => (r.id === id ? { ...r, color } : r)));
   };
 
-  // Delete domino
-  const handleDeleteDomino = (id: string) => {
-    setDominoes(prev => prev.filter(d => d.id !== id));
+  const handleUpdateRegionConstraint = (id: string, constraint: Constraint | null) => {
+    setRegions((prev) => prev.map((r) => (r.id === id ? { ...r, constraint } : r)));
   };
+
+  // Domino operations
+  const handleAddDomino = () => {
+    const newId = `d_${Date.now()}`;
+    setDominoes((prev) => [...prev, { id: newId, a: 0, b: 0 }]);
+  };
+
+  const handleDeleteDomino = (id: string) => {
+    setDominoes((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleUpdateDominoValue = (id: string, half: 'a' | 'b', value: number) => {
+    setDominoes((prev) => prev.map((d) => (d.id === id ? { ...d, [half]: value } : d)));
+  };
+
+  const handleSwapDomino = (id: string) => {
+    setDominoes((prev) => prev.map((d) => (d.id === id ? { ...d, a: d.b, b: d.a } : d)));
+  };
+
+  // Build current Puzzle object for solvability check, export, and play
+  const currentPuzzle: Puzzle = useMemo(() => {
+    const cellsRaw: { id: string; row: number; col: number }[] = [];
+    for (const key of playableKeys) {
+      const [r, c] = key.split(',').map(Number);
+      cellsRaw.push({ id: key, row: r, col: c });
+    }
+    const componentMap = computeConnectedComponents(cellsRaw);
+    const finalCells: Cell[] = cellsRaw.map((c) => ({
+      ...c,
+      componentId: componentMap.get(c.id) ?? 'comp_1'
+    }));
+
+    return {
+      id: initialPuzzle?.id ?? `custom_editor`,
+      name: name || 'Custom Puzzle',
+      cells: finalCells,
+      regions: regions.map((r) => ({
+        ...r,
+        cellIds: r.cellIds.filter((id) => playableKeys.has(id))
+      })),
+      dominoes
+    };
+  }, [initialPuzzle?.id, name, playableKeys, regions, dominoes]);
 
   // Consistency checks
   const totalPlayable = playableKeys.size;
@@ -161,60 +201,27 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
 
   const handleStart = () => {
     if (!isBalanced) {
-      alert(`Cannot start: ${totalPlayable} playable cells, but ${dominoes.length} dominoes cover ${dominoCoverage} cells.`);
+      alert(
+        `Cannot start: ${totalPlayable} playable cells, but ${dominoes.length} dominoes cover ${dominoCoverage} cells.`
+      );
       return;
     }
 
-    // Convert playable cells to Cell objects with component detection
-    const cellsRaw: { id: string; row: number; col: number }[] = [];
-    for (const key of playableKeys) {
-      const [r, c] = key.split(',').map(Number);
-      cellsRaw.push({ id: key, row: r, col: c });
-    }
-
-    const componentMap = computeConnectedComponents(cellsRaw);
-    const finalCells: Cell[] = cellsRaw.map(c => ({
-      ...c,
-      componentId: componentMap.get(c.id) ?? 'comp_1'
-    }));
-
-    const puzzle: Puzzle = {
-      id: initialPuzzle?.id ?? `custom_${Date.now()}`,
-      name,
-      cells: finalCells,
-      regions,
-      dominoes
-    };
-
-    onStartPuzzle(puzzle);
+    onStartPuzzle({
+      ...currentPuzzle,
+      id: initialPuzzle?.id ?? `custom_${Date.now()}`
+    });
   };
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const handleExportPuzzle = () => {
-    const cellsRaw: { id: string; row: number; col: number }[] = [];
-    for (const key of playableKeys) {
-      const [r, c] = key.split(',').map(Number);
-      cellsRaw.push({ id: key, row: r, col: c });
-    }
-    const componentMap = computeConnectedComponents(cellsRaw);
-    const finalCells: Cell[] = cellsRaw.map(c => ({
-      ...c,
-      componentId: componentMap.get(c.id) ?? 'comp_1'
-    }));
-
-    const puzzle: Puzzle = {
-      id: initialPuzzle?.id ?? `custom_${Date.now()}`,
-      name: name || 'Custom Puzzle',
-      cells: finalCells,
-      regions: regions.map(r => ({
-        ...r,
-        cellIds: r.cellIds.filter(id => playableKeys.has(id))
-      })),
-      dominoes
+    const exportPuzzle: Puzzle = {
+      ...currentPuzzle,
+      id: initialPuzzle?.id ?? `custom_${Date.now()}`
     };
 
-    const blob = new Blob([JSON.stringify(puzzle, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportPuzzle, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -240,11 +247,11 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
         }
 
         setName(parsed.name || 'Imported Puzzle');
-        const keys = new Set(parsed.cells.map(c => `${c.row},${c.col}`));
+        const keys = new Set(parsed.cells.map((c) => `${c.row},${c.col}`));
         setPlayableKeys(keys);
 
-        const maxR = Math.max(3, ...parsed.cells.map(c => c.row)) + 1;
-        const maxC = Math.max(3, ...parsed.cells.map(c => c.col)) + 1;
+        const maxR = Math.max(3, ...parsed.cells.map((c) => c.row)) + 1;
+        const maxC = Math.max(3, ...parsed.cells.map((c) => c.col)) + 1;
         setRows(maxR);
         setCols(maxC);
 
@@ -331,12 +338,12 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               fontWeight: 700,
               fontSize: '0.9rem',
               color: '#0f172a',
-              maxWidth: '180px'
+              maxWidth: '170px'
             }}
           />
         </div>
 
-        {/* Center: Save / Import / Status */}
+        {/* Center: Save / Import / Solvability Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={handleExportPuzzle}
@@ -380,25 +387,7 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             <span>Import</span>
           </button>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              padding: '4px 8px',
-              borderRadius: '6px',
-              background: isBalanced ? '#ecfdf5' : '#fef2f2',
-              border: `1px solid ${isBalanced ? '#a7f3d0' : '#fecaca'}`,
-              color: isBalanced ? '#059669' : '#dc2626'
-            }}
-          >
-            {isBalanced ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
-            <span>
-              {totalPlayable}c / {dominoes.length}d
-            </span>
-          </div>
+          <SolvabilityBadge puzzle={currentPuzzle} />
         </div>
 
         {/* Right: Play Puzzle */}
@@ -502,149 +491,19 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             background: '#ffffff'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Regions & Constraints</h3>
-            <button
-              onClick={handleAddRegion}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '5px 12px',
-                borderRadius: '6px',
-                background: '#4f46e5',
-                color: '#ffffff',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <Plus size={14} /> Region
-            </button>
-          </div>
-
           <p style={{ fontSize: '0.78rem', color: '#64748b' }}>
-            Select a region below, then click playable cells on the board to add or remove them.
+            Select a region below, then tap playable cells on the board to add or remove them.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {regions.map((reg) => {
-              const isActive = activeRegionId === reg.id;
-              return (
-                <div
-                  key={reg.id}
-                  onClick={() => setActiveRegionId(reg.id)}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    background: isActive ? '#eef2ff' : '#f8fafc',
-                    border: `1.5px solid ${isActive ? '#6366f1' : '#e2e8f0'}`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <input
-                        type="color"
-                        value={reg.color}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setRegions(prev => prev.map(r => r.id === reg.id ? { ...r, color: val } : r));
-                        }}
-                        style={{ width: '22px', height: '22px', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}
-                      />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
-                        {reg.cellIds.length} cells
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteRegion(reg.id);
-                      }}
-                      style={{
-                        background: '#fee2e2',
-                        border: '1px solid #fecaca',
-                        color: '#dc2626',
-                        borderRadius: '6px',
-                        padding: '3px 6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-
-                  {/* Constraint dropdown and input */}
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={reg.constraint ? reg.constraint.type : 'none'}
-                      onChange={(e) => {
-                        const type = e.target.value;
-                        let newConstraint: Constraint | null = null;
-                        if (type === 'sum') newConstraint = { type: 'sum', value: 10 };
-                        else if (type === 'lessThan') newConstraint = { type: 'lessThan', value: 5 };
-                        else if (type === 'greaterThan') newConstraint = { type: 'greaterThan', value: 5 };
-                        else if (type === 'equal') newConstraint = { type: 'equal' };
-                        else if (type === 'different') newConstraint = { type: 'different' };
-
-                        setRegions(prev => prev.map(r => r.id === reg.id ? { ...r, constraint: newConstraint } : r));
-                      }}
-                      style={{
-                        background: '#ffffff',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '6px',
-                        padding: '4px 8px',
-                        fontSize: '0.8rem',
-                        color: '#0f172a',
-                        fontWeight: 600
-                      }}
-                    >
-                      <option value="none">No constraint</option>
-                      <option value="sum">Sum</option>
-                      <option value="lessThan">Less Than (&lt;)</option>
-                      <option value="greaterThan">Greater Than (&gt;)</option>
-                      <option value="equal">Equal (=)</option>
-                      <option value="different">Different (≠)</option>
-                    </select>
-
-                    {reg.constraint && 'value' in reg.constraint && (
-                      <input
-                        type="number"
-                        value={reg.constraint.value}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (!isNaN(val)) {
-                            setRegions(prev => prev.map(r => r.id === reg.id && r.constraint && 'value' in r.constraint
-                              ? { ...r, constraint: { ...r.constraint, value: val } }
-                              : r
-                            ));
-                          }
-                        }}
-                        style={{
-                          width: '56px',
-                          background: '#ffffff',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '6px',
-                          padding: '4px 6px',
-                          fontSize: '0.8rem',
-                          color: '#0f172a',
-                          fontWeight: 700
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <RegionListEditor
+            regions={regions}
+            activeRegionId={activeRegionId}
+            onSelectRegion={setActiveRegionId}
+            onAddRegion={handleAddRegion}
+            onDeleteRegion={handleDeleteRegion}
+            onUpdateRegionColor={handleUpdateRegionColor}
+            onUpdateRegionConstraint={handleUpdateRegionConstraint}
+          />
         </aside>
 
         {/* Center: Grid layout editor */}
@@ -660,14 +519,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             background: '#f8fafc'
           }}
         >
-          {/* Grid size controls */}
+          {/* Grid size & touch mode controls */}
           <div
             style={{
               display: 'flex',
-              gap: '16px',
+              gap: '14px',
               alignItems: 'center',
               marginBottom: '16px',
-              padding: '8px 16px',
+              padding: '8px 14px',
               background: '#ffffff',
               border: '1px solid #e2e8f0',
               borderRadius: '10px',
@@ -681,12 +540,16 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               <button
                 onClick={() => setRows(Math.max(2, rows - 1))}
                 style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
-              >-</button>
+              >
+                -
+              </button>
               <span style={{ fontWeight: 700, minWidth: '18px', textAlign: 'center', color: '#0f172a' }}>{rows}</span>
               <button
                 onClick={() => setRows(Math.min(10, rows + 1))}
                 style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
-              >+</button>
+              >
+                +
+              </button>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
@@ -694,17 +557,49 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               <button
                 onClick={() => setCols(Math.max(2, cols - 1))}
                 style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
-              >-</button>
+              >
+                -
+              </button>
               <span style={{ fontWeight: 700, minWidth: '18px', textAlign: 'center', color: '#0f172a' }}>{cols}</span>
               <button
                 onClick={() => setCols(Math.min(10, cols + 1))}
                 style={{ padding: '3px 10px', borderRadius: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', fontWeight: 700, cursor: 'pointer' }}
-              >+</button>
+              >
+                +
+              </button>
             </div>
 
-            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-              Right-click cell to toggle playable / hole. Left-click to assign region.
-            </span>
+            {/* Touch-friendly mode toggle: Assign Regions vs Toggle Cells/Holes */}
+            <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '2px' }}>
+              <button
+                type="button"
+                onClick={() => setEditMode('regions')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  background: editMode === 'regions' ? '#4f46e5' : 'transparent',
+                  color: editMode === 'regions' ? '#ffffff' : '#475569',
+                  fontSize: '0.76rem',
+                  fontWeight: 600
+                }}
+              >
+                Assign Regions
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditMode('cells')}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  background: editMode === 'cells' ? '#4f46e5' : 'transparent',
+                  color: editMode === 'cells' ? '#ffffff' : '#475569',
+                  fontSize: '0.76rem',
+                  fontWeight: 600
+                }}
+              >
+                Toggle Cells/Holes
+              </button>
+            </div>
           </div>
 
           {/* Interactive grid */}
@@ -725,13 +620,13 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
               Array.from({ length: cols }).map((_, c) => {
                 const key = `${r},${c}`;
                 const isPlayable = playableKeys.has(key);
-                const reg = regions.find(rg => rg.cellIds.includes(key));
+                const reg = regions.find((rg) => rg.cellIds.includes(key));
 
                 return (
                   <div
                     key={key}
                     onClick={() => {
-                      if (!isPlayable) {
+                      if (editMode === 'cells' || !isPlayable) {
                         handleToggleCell(r, c);
                       } else {
                         handleCellRegionClick(r, c);
@@ -746,10 +641,14 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       height: '54px',
                       borderRadius: '8px',
                       border: isPlayable
-                        ? reg ? `2.5px solid ${reg.color}` : '2px solid #94a3b8'
+                        ? reg
+                          ? `2.5px solid ${reg.color}`
+                          : '2px solid #94a3b8'
                         : '1px dashed #94a3b8',
                       background: isPlayable
-                        ? reg ? `${reg.color}25` : '#ffffff'
+                        ? reg
+                          ? `${reg.color}25`
+                          : '#ffffff'
                         : '#cbd5e1',
                       display: 'flex',
                       flexDirection: 'column',
@@ -761,9 +660,11 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
                       color: isPlayable ? '#0f172a' : '#64748b',
                       boxShadow: isPlayable ? '0 1px 2px rgba(0,0,0,0.08)' : 'none'
                     }}
-                    title={isPlayable ? `Playable cell (${r}, ${c})` : 'Hole (click to enable)'}
+                    title={isPlayable ? `Playable cell (${r}, ${c})` : 'Hole (tap to enable)'}
                   >
-                    <span>{r},{c}</span>
+                    <span>
+                      {r},{c}
+                    </span>
                     {reg?.constraint && (
                       <span style={{ fontSize: '0.62rem', color: reg.color, fontWeight: 700 }}>
                         {reg.constraint.type === 'sum' && reg.constraint.value}
@@ -794,126 +695,13 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
             background: '#ffffff'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
-              Dominoes ({dominoes.length})
-            </h3>
-            <button
-              onClick={handleAddDomino}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '5px 12px',
-                borderRadius: '6px',
-                background: '#4f46e5',
-                color: '#ffffff',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <Plus size={14} /> Domino
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {dominoes.map((d, idx) => (
-              <div
-                key={d.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0'
-                }}
-              >
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 600 }}>
-                  #{idx + 1}
-                </span>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <select
-                    value={d.a}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      setDominoes(prev => prev.map(item => item.id === d.id ? { ...item, a: val } : item));
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '4px',
-                      padding: '2px 6px',
-                      fontWeight: 700,
-                      color: '#0f172a'
-                    }}
-                  >
-                    {[0, 1, 2, 3, 4, 5, 6].map(v => <option key={v} value={v}>{v}</option>)}
-                  </select>
-
-                  <span style={{ color: '#cbd5e1' }}>|</span>
-
-                  <select
-                    value={d.b}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      setDominoes(prev => prev.map(item => item.id === d.id ? { ...item, b: val } : item));
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '4px',
-                      padding: '2px 6px',
-                      fontWeight: 700,
-                      color: '#0f172a'
-                    }}
-                  >
-                    {[0, 1, 2, 3, 4, 5, 6].map(v => <option key={v} value={v}>{v}</option>)}
-                  </select>
-
-                  <button
-                    onClick={() => {
-                      // Swap a and b
-                      setDominoes(prev => prev.map(item => item.id === d.id ? { ...item, a: d.b, b: d.a } : item));
-                    }}
-                    style={{
-                      fontSize: '0.72rem',
-                      padding: '3px 8px',
-                      borderRadius: '4px',
-                      background: '#ffffff',
-                      border: '1px solid #cbd5e1',
-                      color: '#334155',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                    title="Swap values"
-                  >
-                    Swap
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => handleDeleteDomino(d.id)}
-                  style={{
-                    background: '#fee2e2',
-                    border: '1px solid #fecaca',
-                    color: '#dc2626',
-                    borderRadius: '6px',
-                    padding: '3px 6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
+          <DominoInventoryEditor
+            dominoes={dominoes}
+            onAddDomino={handleAddDomino}
+            onDeleteDomino={handleDeleteDomino}
+            onUpdateDominoValue={handleUpdateDominoValue}
+            onSwapDomino={handleSwapDomino}
+          />
         </aside>
       </div>
     </div>

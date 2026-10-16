@@ -74,11 +74,15 @@ export function recognizeBadgeToken(
   const cx = Math.floor(width / 2);
   const cy = Math.floor(height / 2);
 
-  const isSmallBadge = (badgeWidth ?? 80) <= 45 || (badgeHeight ?? 80) <= 45;
+  const rawW = badgeWidth ?? 80;
+  const rawH = badgeHeight ?? 80;
+  const effW = Math.min(rawW, rawH * 1.15);
+  const effH = Math.min(rawH, rawW * 1.15);
+  const isSmallBadge = effW <= 45 || effH <= 45;
   const isOrangeBadge = badgeColorHex === '#f97316' || badgeColorHex === '#ea580c';
   const scale = isOrangeBadge && !isSmallBadge ? 0.94 : 0.82;
-  const rx = ((badgeWidth ?? 80) / 2) * scale;
-  const ry = ((badgeHeight ?? 80) / 2) * scale;
+  const rx = (effW / 2) * scale;
+  const ry = (effH / 2) * scale;
   const cropRadius = Math.round(Math.max(rx, ry) * 1.05);
 
   for (let dy = -cropRadius; dy <= cropRadius; dy++) {
@@ -404,9 +408,13 @@ export function recognizeBadgeToken(
   }
 
   let botRightPixels = 0;
+  let botRightOuterPixels = 0;
   for (let y = leftMaxY - 1; y <= leftMaxY; y++) {
     for (let x = leftMinX + Math.floor(leftW * 0.5); x <= leftMaxX; x++) {
       if (ptsSet.has(`${x},${y}`)) botRightPixels++;
+    }
+    for (let x = leftMinX + Math.floor(leftW * 0.68); x <= leftMaxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) botRightOuterPixels++;
     }
   }
 
@@ -416,7 +424,7 @@ export function recognizeBadgeToken(
     midRightPixels > midLeftPixels &&
     midLeftPixels <= 2 &&
     span25 >= span75 &&
-    botRightPixels <= 1;
+    (botRightPixels <= 1 || (botRightOuterPixels === 0 && span25 > span75));
 
   let leftChar = '';
   // 1. Chevron '<'
@@ -427,15 +435,15 @@ export function recognizeBadgeToken(
   else if (isChevronRight) {
     leftChar = '>';
   }
-  // 3. Digit '2' (in '20'..'24'): wide digit with flat horizontal bottom baseline and NO continuous vertical stem
+  // 3. Digit '2' (in '20'..'24'): wide digit with flat horizontal bottom baseline and top-right arch (span75 >= 0.70*H)
   else if (
-    leftMaxCol / leftH <= 0.86 &&
     botRightPixels >= 2 &&
-    leftW / leftH >= 0.55
+    leftW / leftH >= 0.52 &&
+    (leftMaxCol / leftH <= 0.86 || (span75 >= leftH * 0.70 && leftMaxCol / leftH <= 0.96))
   ) {
     leftChar = '2';
   }
-  // 4. Digit '1' (in '10'..'19'): narrow vertical stroke or solid vertical column (leftMaxCol / leftH > 0.82)
+  // 4. Digit '1' (in '10'..'19'): narrow vertical stroke or solid vertical column (leftMaxCol / leftH > 0.82, span75 <= 0.35*H)
   else {
     leftChar = '1';
   }
@@ -502,8 +510,11 @@ export function recognizeBadgeToken(
     if (count > rightMaxCol) rightMaxCol = count;
   }
 
+  const rcX = Math.floor((rightMinX + rightMaxX) / 2);
+  const rcY = Math.floor((rightMinY + rightMaxY) / 2);
+
   const yCrossStart = rightMinY + Math.floor(rightH * 0.50);
-  const yCrossEnd = rightMinY + Math.floor(rightH * 0.82);
+  const yCrossEnd = rightMinY + Math.floor(rightH * 0.78);
   let maxCrossSpan = 0;
   let crossY = yCrossStart;
   for (let y = yCrossStart; y <= yCrossEnd; y++) {
@@ -517,13 +528,21 @@ export function recognizeBadgeToken(
     }
   }
 
+  const maxCrossThickness = Math.max(2, Math.floor(rightH * 0.18));
   let crossYEnd = crossY;
-  while (crossYEnd < rightMaxY - 1) {
+  while (
+    crossYEnd < rightMaxY - 2 &&
+    crossYEnd - crossY < maxCrossThickness &&
+    crossYEnd + 1 <= rightMinY + Math.floor(rightH * 0.80)
+  ) {
     let span = 0;
     for (let x = rightMinX; x <= rightMaxX; x++) {
       if (ptsSet.has(`${x},${crossYEnd + 1}`)) span++;
     }
-    if (span >= rightW * 0.60) crossYEnd++;
+    const centerFilled =
+      ptsSet.has(`${rcX},${crossYEnd + 1}`) ||
+      (ptsSet.has(`${rcX - 1},${crossYEnd + 1}`) && ptsSet.has(`${rcX + 1},${crossYEnd + 1}`));
+    if (span >= rightW * 0.60 && centerFilled) crossYEnd++;
     else break;
   }
 
@@ -559,8 +578,6 @@ export function recognizeBadgeToken(
     }
   }
 
-  const rcX = Math.floor((rightMinX + rightMaxX) / 2);
-  const rcY = Math.floor((rightMinY + rightMaxY) / 2);
   let rCenterHole = 0;
   for (let dy = -2; dy <= 2; dy++) {
     for (let dx = -2; dx <= 2; dx++) {
@@ -608,38 +625,48 @@ export function recognizeBadgeToken(
   if (rightTopP >= rightW * 0.65 && rightBotP <= rightW * 0.50) {
     rightChar = '7';
   }
-  // 2. '1' (in '11'): narrow width, solid column
+  // 2. '1' (in '11', '<1', '>1'): narrow width, solid column
   else if (rightW / rightH < 0.60 && rightMaxCol >= rightH * 0.65) {
     rightChar = '1';
   }
   // 3. '4' (in '<4', '>4', '24', '14'): horizontal crossbar, empty lower-left below crossbar
   else if (
     maxCrossSpan >= rightW * 0.65 &&
-    rLowerLeft <= Math.max(1, Math.floor(rightW * 0.12)) &&
-    rightBotP <= Math.max(4, Math.floor(rightW * 0.60)) &&
+    rightMaxY - crossYEnd >= Math.max(2, Math.floor(rightH * 0.14)) &&
+    rLowerLeft <= Math.max(2, Math.floor(rightW * 0.15)) &&
+    rightBotP <= Math.max(4, Math.floor(rightW * 0.62)) &&
     rightTopP < rightW * 0.55
   ) {
     rightChar = '4';
   }
-  // 4. '0' (in '10'): center hole
+  // 4. '0' (in '10', '20', '>0'): center hole
   else if (rCenterHole === 0) {
     rightChar = '0';
   }
-  // 5. '9' (in '>9'): enclosed upper loop (both upLeft AND upRight well-developed, no cavity), solid waist, empty lower-left row, solid lower-right stem
+  // 5. '8' vs '9' (in '>8', '<8', '18', '>9', '<9', '19'):
+  // enclosed upper loop (both upLeft AND upRight well-developed, no cavity), solid waist, solid lower-right stem
   else if (
     upLeft >= 8 &&
     upLeft >= upRight * 0.65 &&
     hasUpperRight &&
     emptyUpperRightRows === 0 &&
     maxCrossSpan >= rightW * 0.55 &&
-    hasEmptyLowerLeftRow &&
     lowerRightStem >= 6
   ) {
-    rightChar = '9';
+    rightChar = hasEmptyLowerLeftRow ? '9' : '8';
   }
-  // 6. '5' (in '<5'): empty upper-right cavity below top bar, or vertical stem on upper-left
+  // 6. '5' vs '6' (in '<5', '>5', '15', '<6', '>6', '16'):
+  // empty upper-right cavity below top bar, or vertical stem on upper-left
   else if (upLeft > upRight || !hasUpperRight) {
-    rightChar = '5';
+    if (
+      !hasEmptyLowerLeftRow &&
+      maxCrossSpan >= rightW * 0.55 &&
+      lowerRightStem >= 6
+    ) {
+      rightChar = '6';
+    } else {
+      rightChar = '5';
+    }
   }
   // 7. '2' vs '3':
   // In '2', descending diagonal has midRatio <= 1.85, OR flat baseline with botRow >= 0.55*W and midRatio <= 3.00
@@ -668,14 +695,61 @@ function classifySingleDigit(
   const glyphW = maxX - minX + 1;
   const glyphH = maxY - minY + 1;
 
-  // 1. Digit '1': narrow aspect ratio
+  // 1. Digit '1': narrow aspect ratio OR central vertical stem with wide bottom serif base
   if (glyphW / glyphH < 0.58) {
     return '1';
   }
+
   let topP = 0, botP = 0;
   for (let x = minX; x <= maxX; x++) {
     if (ptsSet.has(`${x},${minY}`) || ptsSet.has(`${x},${minY + 1}`)) topP++;
     if (ptsSet.has(`${x},${maxY}`) || ptsSet.has(`${x},${maxY - 1}`)) botP++;
+  }
+
+  if (glyphW / glyphH < 0.64 && botP >= glyphW * 0.75) {
+    const cX = Math.floor((minX + maxX) / 2);
+    let stemBrokenRows = 0;
+    for (let y = minY + Math.floor(glyphH * 0.15); y <= maxY - 2; y++) {
+      if (!ptsSet.has(`${cX},${y}`) || !ptsSet.has(`${cX - 1},${y}`)) {
+        stemBrokenRows++;
+      }
+    }
+    const yBeak1 = minY + Math.floor(glyphH * 0.15);
+    const yBeak2 = minY + Math.floor(glyphH * 0.38);
+    let beakLeft = 0;
+    let beakRight = 0;
+    for (let y = yBeak1; y <= yBeak2; y++) {
+      for (let x = minX; x < cX; x++) {
+        if (ptsSet.has(`${x},${y}`)) beakLeft++;
+      }
+      for (let x = cX + 1; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) beakRight++;
+      }
+    }
+    const yMidStem1 = minY + Math.floor(glyphH * 0.38);
+    const yMidStem2 = minY + Math.floor(glyphH * 0.72);
+    const xLeftMargin = minX + Math.max(1, Math.floor(glyphW * 0.18));
+    const xRightMargin = maxX - Math.max(2, Math.floor(glyphW * 0.22));
+    let midLeftMarginPixels = 0;
+    let upperAndMidRightPixels = 0;
+    for (let y = minY; y <= yMidStem2; y++) {
+      if (y >= yMidStem1) {
+        for (let x = minX; x <= xLeftMargin; x++) {
+          if (ptsSet.has(`${x},${y}`)) midLeftMarginPixels++;
+        }
+      }
+      for (let x = xRightMargin; x <= maxX; x++) {
+        if (ptsSet.has(`${x},${y}`)) upperAndMidRightPixels++;
+      }
+    }
+    if (
+      stemBrokenRows === 0 &&
+      beakLeft > beakRight * 1.3 &&
+      midLeftMarginPixels === 0 &&
+      upperAndMidRightPixels === 0
+    ) {
+      return '1';
+    }
   }
 
   // Wall and cavity checks
@@ -738,13 +812,21 @@ function classifySingleDigit(
     }
   }
 
+  const maxCrossThickness = Math.max(2, Math.floor(glyphH * 0.18));
   let crossYEnd = crossY;
-  while (crossYEnd < maxY - 1) {
+  while (
+    crossYEnd < maxY - 2 &&
+    crossYEnd - crossY < maxCrossThickness &&
+    crossYEnd + 1 <= minY + Math.floor(glyphH * 0.78)
+  ) {
     let span = 0;
     for (let x = minX; x <= maxX; x++) {
       if (ptsSet.has(`${x},${crossYEnd + 1}`)) span++;
     }
-    if (span >= glyphW * 0.60) crossYEnd++;
+    const centerFilled =
+      ptsSet.has(`${cX},${crossYEnd + 1}`) ||
+      (ptsSet.has(`${cX - 1},${crossYEnd + 1}`) && ptsSet.has(`${cX + 1},${crossYEnd + 1}`));
+    if (span >= glyphW * 0.60 && centerFilled) crossYEnd++;
     else break;
   }
 
@@ -759,8 +841,10 @@ function classifySingleDigit(
   const maxLL = Math.max(1, Math.floor(glyphW * 0.12));
   if (
     maxCrossSpan >= minCrossReq &&
+    maxY - crossYEnd >= Math.max(2, Math.floor(glyphH * 0.14)) &&
     lowerLeftPixels <= maxLL &&
-    botP <= Math.max(4, Math.floor(glyphW * 0.60))
+    botP <= Math.max(4, Math.floor(glyphW * 0.60)) &&
+    topP < glyphW * 0.60
   ) {
     return '4';
   }
@@ -814,14 +898,20 @@ function classifySingleDigit(
 
   // 5. '6' vs '8' vs '9': upper left wall is continuous, waist crossbar is solid
   if (maxConsecutiveEmptyLeftUpper <= 1 && maxWaistSpan >= glyphW * 0.55) {
-    const yUR1 = minY + Math.floor(glyphH * 0.22);
-    const yUR2 = Math.max(yUR1, waistY - 1);
+    const yUR1 = minY + Math.floor(glyphH * 0.24);
+    const yUR2 = Math.max(yUR1, Math.min(waistY - 1, minY + Math.floor(glyphH * 0.38)));
     const xRight = maxX - Math.max(1, Math.round(glyphW * 0.25));
     let urPixels = 0;
+    let emptyUpperRightRows = 0;
     for (let y = yUR1; y <= yUR2; y++) {
+      let rowUR = 0;
       for (let x = xRight; x <= maxX; x++) {
-        if (ptsSet.has(`${x},${y}`)) urPixels++;
+        if (ptsSet.has(`${x},${y}`)) {
+          urPixels++;
+          rowUR++;
+        }
       }
+      if (rowUR === 0) emptyUpperRightRows++;
     }
     const urBoxArea = (yUR2 - yUR1 + 1) * (maxX - xRight + 1);
 
@@ -842,7 +932,7 @@ function classifySingleDigit(
       }
     }
 
-    if (urPixels >= urBoxArea * 0.35) {
+    if (emptyUpperRightRows === 0 && urPixels >= urBoxArea * 0.35) {
       if (hasEmptyLowerLeftRow) {
         return '9';
       }

@@ -26,6 +26,7 @@ interface PuzzleBoardProps {
   onDominoClick?: (dominoId: string) => void;
   onDominoPointerDown?: (e: React.PointerEvent, dominoId: string, fromBoard: boolean) => void;
   onCellClick?: (cellId: CellId) => void;
+  onRegionBadgeClick?: (regionId: string) => void;
   onEmptyBoardClick?: () => void;
   boardRef?: React.RefObject<SVGSVGElement | null>;
   className?: string;
@@ -41,6 +42,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
   onDominoClick,
   onDominoPointerDown,
   onCellClick,
+  onRegionBadgeClick,
   onEmptyBoardClick,
   boardRef,
   className = ''
@@ -127,7 +129,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           maxHeight: '100%',
           maxWidth: '100%',
           display: 'block',
-          touchAction: 'none',
+          touchAction: onDominoPointerDown ? 'none' : 'pan-x pan-y pinch-zoom',
           userSelect: 'none'
         }}
         id="pips-puzzle-board"
@@ -261,6 +263,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
                 size={Math.max(34, cellSize * 0.56)}
                 cx={cx}
                 cy={cy}
+                onClick={onRegionBadgeClick ? () => onRegionBadgeClick(reg.id) : undefined}
               />
             );
           })}

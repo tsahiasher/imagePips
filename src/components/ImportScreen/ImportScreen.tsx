@@ -193,8 +193,8 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               width: '100%',
               padding: '30px 20px',
               borderRadius: '16px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
+              background: '#f8fafc',
+              border: '1px solid #c7d2fe',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -205,18 +205,37 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
               style={{
                 width: '44px',
                 height: '44px',
-                border: '4px solid rgba(99, 102, 241, 0.2)',
-                borderTopColor: '#6366f1',
+                border: '4px solid #e0e7ff',
+                borderTopColor: '#4f46e5',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }}
             />
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#a5b4fc' }}>
+            <div style={{ textAlign: 'center', width: '100%', maxWidth: '300px' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#312e81' }}>
                 {progress.stage}
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', marginBottom: '10px' }}>
                 Local browser image analysis ({progress.percent}%)
+              </div>
+              <div
+                style={{
+                  width: '100%',
+                  height: '6px',
+                  borderRadius: '999px',
+                  background: '#e2e8f0',
+                  overflow: 'hidden'
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.max(5, Math.min(100, progress.percent))}%`,
+                    height: '100%',
+                    borderRadius: '999px',
+                    background: 'linear-gradient(90deg, #6366f1, #4f46e5)',
+                    transition: 'width 0.18s ease-out'
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -276,7 +295,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
           }
         })() && (
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '10px' }}>
-            {['game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7', 'game8', 'game9', 'game10'].map((g) => (
+            {['game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7', 'game8', 'game9', 'game10', 'game11'].map((g) => (
               <button
                 key={g}
                 id={`test-${g}-btn`}

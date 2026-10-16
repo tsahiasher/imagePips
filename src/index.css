@@ -51,7 +51,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   user-select: none;
-  touch-action: manipulation;
+  touch-action: pan-x pan-y pinch-zoom;
+  overscroll-behavior-y: auto;
 }
 
 button {
@@ -132,6 +133,19 @@ html, body, #root, .app-root, .play-screen-root {
 }
 
 @media (max-width: 768px) {
+  .verification-main-layout {
+    flex-direction: column !important;
+  }
+
+  .verification-edit-drawer {
+    width: 100% !important;
+    max-height: 44dvh !important;
+    border-left: none !important;
+    border-top: 2px solid #cbd5e1 !important;
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
+    flex-shrink: 0;
+  }
+
   .verification-side-by-side {
     grid-template-columns: 1fr !important;
     grid-template-rows: 1fr 1fr !important;

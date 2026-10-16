@@ -6,7 +6,7 @@ async function saveAllGoldens() {
   const games = [
     'game1.jpg', 'game2.jpg', 'game3.jpg', 'game4.jpg',
     'game5.jpg', 'game6.jpg', 'game7.jpg', 'game8.jpg',
-    'game9.jpg', 'game10.jpg'
+    'game9.jpg', 'game10.jpg', 'game11.jpg'
   ];
 
   const outDir = path.resolve(process.cwd(), 'golden_results');
@@ -23,7 +23,6 @@ async function saveAllGoldens() {
 
     const goldenData = {
       game: g,
-      timestamp: new Date().toISOString(),
       validation: {
         valid: debugData.validation.valid,
         errors: debugData.validation.errors,
@@ -52,7 +51,9 @@ async function saveAllGoldens() {
       })),
       dominoes: puzzle.dominoes.map((d) => ({
         id: d.id,
-        values: [d.left, d.right],
+        a: d.a,
+        b: d.b,
+        values: [d.a, d.b],
       })),
       cells: puzzle.cells.map((c) => ({
         id: c.id,
@@ -69,3 +70,4 @@ async function saveAllGoldens() {
 }
 
 saveAllGoldens().catch(console.error);
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Domino } from '../Domino/Domino';
 import { DominoTray } from '../DominoTray/DominoTray';
 import { GameStatus } from '../GameStatus/GameStatus';
@@ -12,7 +12,7 @@ import {
 } from '../../game/gameState';
 import { isPuzzleSolved } from '../../game/constraintEngine';
 import { useDominoDrag } from '../../game/useDominoDrag';
-import { saveActiveSession } from '../../persistence/storage';
+import { saveActiveGameState, saveActivePuzzle } from '../../persistence/storage';
 import { Puzzle } from '../../domain/puzzle';
 
 interface PlayScreenProps {
@@ -32,6 +32,9 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
     initGameState(puzzle, initialState)
   );
 
+  const latestGameStateRef = useRef<GameState>(gameState);
+  latestGameStateRef.current = gameState;
+
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
   const cellSize = 70;
 
@@ -46,30 +49,87 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
     handlePointerUp
   } = useDominoDrag(gameState, setGameState, boardSvgRef, cellSize);
 
-  // Timer loop
+  // Timer loop (pauses automatically when document is hidden in background)
   useEffect(() => {
     if (!gameState.timerRunning || gameState.solved) return;
 
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       setGameState((prev) => tickTimer(prev, performance.now()));
     }, 250);
 
     return () => clearInterval(interval);
   }, [gameState.timerRunning, gameState.solved]);
 
-  // Persist session whenever state changes
+  // Pause timer timestamp when app/tab goes to background and persist latest elapsed time
   useEffect(() => {
-    saveActiveSession(puzzle, gameState);
-  }, [puzzle, gameState]);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        saveActiveGameState(latestGameStateRef.current);
+        setGameState((prev) => ({
+          ...prev,
+          lastTickTimestamp: null
+        }));
+      } else {
+        setGameState((prev) => ({
+          ...prev,
+          lastTickTimestamp: performance.now()
+        }));
+      }
+    };
 
-  // Determine invalid region IDs for red error dots
-  const { invalidRegionIds } = isPuzzleSolved(puzzle, gameState.placements);
-  const displayedInvalidRegions =
-    gameState.validationMode === 'repair' ? invalidRegionIds : [];
+    const handlePageHide = () => {
+      saveActiveGameState(latestGameStateRef.current);
+    };
 
-  // Filter unused dominoes for tray
-  const placedIds = new Set(gameState.placements.map((p) => p.dominoId));
-  const unusedDominoes = puzzle.dominoes.filter((d) => !placedIds.has(d.id));
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      saveActiveGameState(latestGameStateRef.current);
+    };
+  }, []);
+
+  // Persist puzzle only when puzzle definition changes
+  useEffect(() => {
+    saveActivePuzzle(puzzle);
+  }, [puzzle]);
+
+  // Persist game state only on meaningful player moves/actions (not every 250ms clock tick)
+  useEffect(() => {
+    saveActiveGameState(latestGameStateRef.current);
+  }, [
+    gameState.placements,
+    gameState.dominoRotations,
+    gameState.solved,
+    gameState.validationMode,
+    gameState.hasShownFullBoardMessage,
+    gameState.moves,
+    gameState.rotations,
+    gameState.invalidDrops,
+    gameState.timerStarted
+  ]);
+
+  // Determine invalid region IDs for red error dots (memoized across timer ticks)
+  const { invalidRegionIds } = useMemo(
+    () => isPuzzleSolved(puzzle, gameState.placements),
+    [puzzle, gameState.placements]
+  );
+  const displayedInvalidRegions = useMemo(
+    () => (gameState.validationMode === 'repair' ? invalidRegionIds : []),
+    [gameState.validationMode, invalidRegionIds]
+  );
+
+  // Filter unused dominoes for tray (memoized across timer ticks)
+  const placedIds = useMemo(
+    () => new Set(gameState.placements.map((p) => p.dominoId)),
+    [gameState.placements]
+  );
+  const unusedDominoes = useMemo(
+    () => puzzle.dominoes.filter((d) => !placedIds.has(d.id)),
+    [puzzle.dominoes, placedIds]
+  );
 
   // Active dragging domino definition
   const draggingDomino = dragState

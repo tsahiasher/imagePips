@@ -11,9 +11,16 @@ export interface SavedPuzzleBundle {
   savedAt: number;
 }
 
-export function saveActiveSession(puzzle: Puzzle, state: GameState): void {
+export function saveActivePuzzle(puzzle: Puzzle): void {
   try {
     localStorage.setItem(PUZZLE_STORAGE_KEY, JSON.stringify(puzzle));
+  } catch (err) {
+    console.error('Failed to save puzzle to localStorage:', err);
+  }
+}
+
+export function saveActiveGameState(state: GameState): void {
+  try {
     const stateToSave: Partial<GameState> = {
       placements: state.placements,
       dominoRotations: state.dominoRotations,
@@ -29,8 +36,13 @@ export function saveActiveSession(puzzle: Puzzle, state: GameState): void {
     };
     localStorage.setItem(GAME_STATE_STORAGE_KEY, JSON.stringify(stateToSave));
   } catch (err) {
-    console.error('Failed to save session to localStorage:', err);
+    console.error('Failed to save game state to localStorage:', err);
   }
+}
+
+export function saveActiveSession(puzzle: Puzzle, state: GameState): void {
+  saveActivePuzzle(puzzle);
+  saveActiveGameState(state);
 }
 
 export function loadActiveSession(): { puzzle: Puzzle; savedState?: Partial<GameState> } | null {

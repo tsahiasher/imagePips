@@ -1,6 +1,5 @@
 {
   "game": "game1.jpg",
-  "timestamp": "2026-10-15T06:13:33.424Z",
   "validation": {
     "valid": true,
     "errors": [],
@@ -321,93 +320,119 @@
   "dominoes": [
     {
       "id": "d_1",
+      "a": 2,
+      "b": 4,
       "values": [
-        null,
-        null
+        2,
+        4
       ]
     },
     {
       "id": "d_2",
+      "a": 4,
+      "b": 0,
       "values": [
-        null,
-        null
+        4,
+        0
       ]
     },
     {
       "id": "d_3",
+      "a": 6,
+      "b": 6,
       "values": [
-        null,
-        null
+        6,
+        6
       ]
     },
     {
       "id": "d_4",
+      "a": 3,
+      "b": 3,
       "values": [
-        null,
-        null
+        3,
+        3
       ]
     },
     {
       "id": "d_5",
+      "a": 4,
+      "b": 4,
       "values": [
-        null,
-        null
+        4,
+        4
       ]
     },
     {
       "id": "d_6",
+      "a": 1,
+      "b": 2,
       "values": [
-        null,
-        null
+        1,
+        2
       ]
     },
     {
       "id": "d_7",
+      "a": 2,
+      "b": 5,
       "values": [
-        null,
-        null
+        2,
+        5
       ]
     },
     {
       "id": "d_8",
+      "a": 3,
+      "b": 4,
       "values": [
-        null,
-        null
+        3,
+        4
       ]
     },
     {
       "id": "d_9",
+      "a": 4,
+      "b": 5,
       "values": [
-        null,
-        null
+        4,
+        5
       ]
     },
     {
       "id": "d_10",
+      "a": 4,
+      "b": 6,
       "values": [
-        null,
-        null
+        4,
+        6
       ]
     },
     {
       "id": "d_11",
+      "a": 3,
+      "b": 6,
       "values": [
-        null,
-        null
+        3,
+        6
       ]
     },
     {
       "id": "d_12",
+      "a": 2,
+      "b": 6,
       "values": [
-        null,
-        null
+        2,
+        6
       ]
     },
     {
       "id": "d_13",
+      "a": 2,
+      "b": 2,
       "values": [
-        null,
-        null
+        2,
+        2
       ]
     }
   ],
