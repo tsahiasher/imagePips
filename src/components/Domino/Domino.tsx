@@ -58,10 +58,10 @@ export const Domino: React.FC<DominoProps> = ({
     opacity = 0.6;
   } else if (isPlaced) {
     if (isSelected) {
-      // Selected placed domino: make it even more noticeably brighter with high contrast vibrant glow
+      // Selected placed domino: solid white, bold black border
       opacity = 1;
-      strokeColor = '#2563eb';
-      strokeWidth = 2.2;
+      strokeColor = '#000000';
+      strokeWidth = 2.4;
     } else {
       // Settled placed domino: 58% transparent, thin black edge
       opacity = 0.58;
@@ -85,7 +85,7 @@ export const Domino: React.FC<DominoProps> = ({
           ? 'drop-shadow(0 14px 16px rgba(0,0,0,0.5))'
           : isPlaced
           ? isSelected
-            ? 'drop-shadow(0 0 18px rgba(255, 255, 255, 1)) drop-shadow(0 0 8px rgba(59, 130, 246, 0.9)) drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45))'
+            ? 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25))'
             : 'none'
           : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
         opacity,
@@ -112,8 +112,8 @@ export const Domino: React.FC<DominoProps> = ({
         strokeWidth={strokeWidth}
       />
 
-      {/* Internal subtle bevel / inset highlight */}
-      {(!isPlaced || isSelected) && (
+      {/* Internal subtle bevel / inset highlight (only when unplaced in tray/dragging) */}
+      {!isPlaced && (
         <rect
           x={2}
           y={2}
@@ -122,8 +122,8 @@ export const Domino: React.FC<DominoProps> = ({
           rx={rx - 1}
           ry={rx - 1}
           fill="none"
-          stroke={isSelected ? '#60a5fa' : 'rgba(255, 255, 255, 0.7)'}
-          strokeWidth={isSelected ? 1.5 : 1}
+          stroke="rgba(255, 255, 255, 0.7)"
+          strokeWidth={1}
           pointerEvents="none"
         />
       )}

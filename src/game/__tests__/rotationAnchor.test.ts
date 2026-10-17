@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { canPlaceDomino, DominoPlacement, placeDomino } from '../../domain/placement';
 import { Puzzle, makeCellId } from '../../domain/puzzle';
@@ -112,5 +113,45 @@ describe('Domino Rotation Anchor Rules', () => {
     // Revert when illegal:
     placements = placeDomino(placements, original);
     expect(placements[0]).toEqual(original);
+  });
+
+  it('renders bold black border and opacity 1 when selected on board', async () => {
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { Domino } = await import('../../components/Domino/Domino');
+
+    const html = renderToStaticMarkup(
+      React.createElement(Domino, {
+        domino: puzzle.dominoes[0],
+        rotation: 0,
+        cellSize: 72,
+        isPlaced: true,
+        isSelected: true
+      })
+    );
+
+    // Selected domino should have opacity: 1 and bold black stroke
+    expect(html).toContain('opacity:1');
+    expect(html).toContain('stroke="#000000"');
+    expect(html).toContain('stroke-width="2.4"');
+  });
+
+  it('renders normal thin black border and opacity 0.58 when unselected on board', async () => {
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { Domino } = await import('../../components/Domino/Domino');
+
+    const html = renderToStaticMarkup(
+      React.createElement(Domino, {
+        domino: puzzle.dominoes[0],
+        rotation: 0,
+        cellSize: 72,
+        isPlaced: true,
+        isSelected: false
+      })
+    );
+
+    // Unselected domino should return to opacity: 0.58 and thin black stroke 0.9
+    expect(html).toContain('opacity:0.58');
+    expect(html).toContain('stroke="#000000"');
+    expect(html).toContain('stroke-width="0.9"');
   });
 });

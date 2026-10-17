@@ -171,6 +171,16 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
           }
         }}
       >
+        {/* Transparent backdrop to catch clicks on empty board margins/padding */}
+        <rect
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          fill="transparent"
+          style={{ pointerEvents: 'all' }}
+          onClick={() => onEmptyBoardClick?.()}
+        />
         {/* Empty holes (rendered in edit mode so clicking an empty hole turns it back into a playable cell) */}
         {showHoles && holes.length > 0 && (
           <g className="board-holes">

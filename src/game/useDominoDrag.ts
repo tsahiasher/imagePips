@@ -122,6 +122,7 @@ export function useDominoDrag(
     const sel = selectedPlacementRef.current;
     if (!sel) return;
 
+    selectedPlacementRef.current = null;
     setSelectedPlacement(null);
 
     if (sel.isLegal) {
@@ -461,12 +462,16 @@ export function useDominoDrag(
                 selectionTimerRef.current = null;
               }
 
-              // If in legal position, and only then, unselect after 1 second.
-              // If not in legal position, do nothing (no timer, do not unselect automatically, do not revert).
+              // If in legal position, unselect and commit after 1 second.
+              // If not in legal position, give user 1.5s to click again; if they stop, revert to original placement and unselect.
               if (cand.isLegal) {
                 selectionTimerRef.current = setTimeout(() => {
                   commitOrRevertSelected();
                 }, 1000);
+              } else {
+                selectionTimerRef.current = setTimeout(() => {
+                  commitOrRevertSelected();
+                }, 1500);
               }
             }
           }

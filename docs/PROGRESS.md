@@ -1,5 +1,21 @@
 # Progress Log
 
+**2026-10-17 — Domino selection bold black border and reliable deselect on rotation, drag, or empty click. ✅ DONE**
+- Resolved domino selection and unselection styling and interaction transitions:
+  1. **Selection Border & Opacity**:
+     - When selected on the board, a placed domino now renders with a solid bold black border (`stroke: #000000`, `strokeWidth: 2.4`), solid white background (`opacity: 1`), and clean subtle shadow (`drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25))`), eliminating the previous blue stroke and blue glow.
+     - When unselected, the domino immediately returns to normal placed state: thin black border (`stroke: #000000`, `strokeWidth: 0.9`), semi-transparent body (`opacity: 0.58`), and no shadow (`filter: none`).
+  2. **Unselection on Rotation & Drag**:
+     - `useDominoDrag.ts`: Synchronously cleared `selectedPlacementRef.current = null` in `commitOrRevertSelected` to eliminate re-render race conditions.
+     - Automatic 1-second unselect timer triggers after a legal rotation; illegal rotations now also automatically revert and unselect after 1.5 seconds if interaction stops.
+     - Dragging another domino from either board or tray immediately unselects the active domino before initiating the drag.
+  3. **Empty Click Catchers**:
+     - Added full-size transparent backdrop rect to `PuzzleBoard.tsx` and empty click handler to `DominoTray.tsx` so clicking board padding, margins, or empty tray slots immediately unselects any active domino.
+- Proof:
+  - All 19 test suites (71 tests) passing (`npm test`).
+  - Production build passing (`npm run build`).
+  - Dev server running on `http://localhost:5173/`.
+
 **2026-10-17 — Game 12: 9x9 "OFF" grid detection alignment, unequal '≠' recognition, golden snapshot, and regression test. ✅ DONE**
 - Resolved puzzle geometry distortion on `game12.jpg` where the right and bottom sections misaligned into 34 cells instead of 28 cells, and condition badge 6 was misidentified as `5` instead of `≠`.
 - Root causes & fixes:

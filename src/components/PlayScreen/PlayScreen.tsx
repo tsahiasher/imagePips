@@ -211,6 +211,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
         dominoRotations={gameState.dominoRotations}
         onDominoClick={() => {}}
         onDominoPointerDown={handlePointerDown}
+        onEmptyClick={deselectDomino}
       />
 
       {/* Floating dragging ghost piece */}

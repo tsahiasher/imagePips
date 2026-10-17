@@ -11,6 +11,7 @@ interface DominoTrayProps {
   dominoRotations: Record<string, DominoRotationState>;
   onDominoClick: (dominoId: string) => void;
   onDominoPointerDown: (e: React.PointerEvent, dominoId: string, fromBoard: boolean) => void;
+  onEmptyClick?: () => void;
   selectedDominoId?: string | null;
   className?: string;
 }
@@ -24,6 +25,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
   dominoRotations,
   onDominoClick,
   onDominoPointerDown,
+  onEmptyClick,
   selectedDominoId,
   className = ''
 }) => {
@@ -85,6 +87,11 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
         alignItems: 'center',
         flexShrink: 0
       }}
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) {
+          onEmptyClick?.();
+        }
+      }}
     >
       <div
         className="domino-tray-items"
@@ -125,11 +132,15 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
               onPointerDown={(e) => {
                 if (!isPlaced) {
                   onDominoPointerDown(e, domino.id, false);
+                } else {
+                  onEmptyClick?.();
                 }
               }}
               onClick={() => {
                 if (!isPlaced) {
                   onDominoClick(domino.id);
+                } else {
+                  onEmptyClick?.();
                 }
               }}
             >
