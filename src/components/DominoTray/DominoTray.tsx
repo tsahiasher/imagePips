@@ -45,8 +45,8 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
   const trayCellSize = isLarge ? 34 : isMedium ? 38 : 42;
   const slotWidth = trayCellSize * 2 + 4;
   const slotHeight = trayCellSize + 4;
-  const colGap = 8;
-  const rowGap = isLarge ? 14 : 16;
+  const colGap = 6;
+  const rowGap = isLarge ? 5 : 6;
 
   // Expected rows based on total puzzle capacity to lock tray height permanently
   const colsPerRow = isLarge ? 5 : isMedium ? 4 : count <= 4 ? count : 3;
@@ -76,10 +76,10 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
       className={`domino-tray-wrapper ${className}`}
       style={{
         width: '100%',
-        paddingTop: '12px',
-        paddingLeft: '10px',
-        paddingRight: '10px',
-        paddingBottom: 'max(84px, calc(env(safe-area-inset-bottom, 0px) + 76px))',
+        paddingTop: '6px',
+        paddingLeft: '6px',
+        paddingRight: '6px',
+        paddingBottom: 'max(8px, calc(env(safe-area-inset-bottom, 0px) + 6px))',
         background: '#ffffff',
         borderTop: '1px solid #e2e8f0',
         boxShadow: '0 -4px 16px rgba(0, 0, 0, 0.04)',
@@ -105,7 +105,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
           alignItems: 'center',
           maxWidth: `${colsPerRow * slotWidth + (colsPerRow - 1) * colGap + 4}px`,
           minHeight: `${expectedContentHeight}px`,
-          padding: '4px 2px',
+          padding: '2px',
           overflow: 'visible'
         }}
       >

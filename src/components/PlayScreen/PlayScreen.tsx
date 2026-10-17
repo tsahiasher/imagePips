@@ -174,7 +174,7 @@ export const PlayScreen: React.FC<PlayScreenProps> = ({
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '6px 12px',
+          padding: '2px 4px',
           overflow: 'hidden',
           position: 'relative',
           background: '#ffffff'

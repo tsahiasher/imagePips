@@ -1,5 +1,25 @@
 # Progress Log
 
+**2026-10-17 — Mobile tray compaction and puzzle board real-estate expansion. ✅ DONE**
+- Freed vertical and horizontal viewport real estate on mobile screens so the puzzle board and condition badges render larger without shrinking tray domino tile sizes (`trayCellSize` preserved at `34 / 38 / 42`):
+  1. **Tray Bottom Padding & Condensed Domino Lines (`DominoTray.tsx`)**:
+     - Reduced excessive bottom padding from `max(84px, calc(env(safe-area-inset-bottom, 0px) + 76px))` to `max(8px, calc(env(safe-area-inset-bottom, 0px) + 6px))` and top/side padding to `6px`.
+     - Condensed vertical `rowGap` from `14px`–`16px` down to `5px`–`6px` and `colGap` to `6px` while keeping `trayCellSize = isLarge ? 34 : isMedium ? 38 : 42`.
+  2. **Board Area & Condition Readability (`PlayScreen.tsx`, `PuzzleBoard.tsx`, `ConditionBadge.tsx`)**:
+     - Reduced `PlayScreen.tsx` `<main>` padding from `6px 12px` to `2px 4px`.
+     - Reduced `PuzzleBoard.tsx` outer SVG viewBox margin from `cellSize * 0.45` to `cellSize * 0.30`.
+     - Increased condition badge text font-size ratios in `ConditionBadge.tsx` (`0.38 / 0.44 / 0.50 * size`) for clearer readability on mobile screens.
+- Files touched:
+  - `src/components/DominoTray/DominoTray.tsx`
+  - `src/components/PlayScreen/PlayScreen.tsx`
+  - `src/components/PuzzleBoard/PuzzleBoard.tsx`
+  - `src/components/ConditionBadge/ConditionBadge.tsx`
+  - `docs/DECISIONS.md`
+  - `docs/PROGRESS.md`
+- Proof:
+  - Production build passing (`npm run build`).
+  - All 20 test suites (76 tests) passing.
+
 **2026-10-17 — NYT Pips UI polish (7 visual enhancements), `pips-build-puzzle` v1 JSON serialization, and symmetry-breaking solution counting. ✅ DONE**
 - Implemented 7 NYT Pips UI improvements, refactored puzzle JSON serialization to `pips-build-puzzle` v1, and added exact solution counting without equivalent in-region flips:
   1. **NYT Pips UI Enhancements (1–7)**:

@@ -80,7 +80,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
 
   const cols = Math.max(1, maxCol - minCol + 1);
   const rows = Math.max(1, maxRow - minRow + 1);
-  const padding = cellSize * 0.45; // Space for badges extending beyond edges
+  const padding = cellSize * 0.30; // Space for badges extending beyond edges
   const width = cols * cellSize + padding * 2;
   const height = rows * cellSize + padding * 2;
 

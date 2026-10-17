@@ -135,7 +135,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         paintOrder="stroke fill"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={text.length >= 3 ? size * 0.35 : text.length === 2 ? size * 0.41 : size * 0.46}
+        fontSize={text.length >= 3 ? size * 0.38 : text.length === 2 ? size * 0.44 : size * 0.50}
         fontWeight="900"
         fontFamily="var(--font-sans), sans-serif"
         letterSpacing={text.length >= 3 ? '-0.04em' : '-0.01em'}
