@@ -114,3 +114,14 @@ export function computeConnectedComponents(
 
   return componentMap;
 }
+
+export {
+  PIPS_PALETTE_HEX,
+  NEUTRAL_CELL_COLOR,
+  hexToColorIndex,
+  colorIndexToHex,
+  serializePuzzle,
+  deserializePuzzle
+} from './puzzleSerialization';
+export type { PipsBuildPuzzleV1, PipsBuildRegionV1 } from './puzzleSerialization';
+

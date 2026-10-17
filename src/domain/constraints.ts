@@ -44,7 +44,9 @@ export function parseConstraint(token: string): Constraint | null {
   const trimmed = token.trim();
   if (!trimmed) return null;
   if (trimmed === "=") return { type: "equal" };
-  if (trimmed === "≠" || trimmed.toLowerCase() === "diff") return { type: "different" };
+  if (trimmed === "≠" || trimmed === "!=" || trimmed.toLowerCase() === "diff") {
+    return { type: "different" };
+  }
 
   if (trimmed.startsWith("<")) {
     const val = parseInt(trimmed.slice(1), 10);

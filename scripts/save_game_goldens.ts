@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { serializePuzzle } from '../src/domain/puzzle';
 import { importPuzzleFromImage } from '../src/importer/importPuzzle';
 
 async function saveAllGoldens() {
@@ -21,51 +22,13 @@ async function saveAllGoldens() {
     console.log(`Processing ${g}...`);
     const { puzzle, debugData } = await importPuzzleFromImage(imagePath);
 
-    const goldenData = {
-      game: g,
-      validation: {
-        valid: debugData.validation.valid,
-        errors: debugData.validation.errors,
-        warnings: debugData.validation.warnings,
-      },
-      counts: {
-        cells: puzzle.cells.length,
-        dominoes: puzzle.dominoes.length,
-        regions: puzzle.regions.length,
-        badges: debugData.detectedBadges.length,
-      },
-      badges: debugData.detectedBadges.map((b) => ({
-        id: b.id,
-        x: b.x,
-        y: b.y,
-        colorHex: b.colorHex,
-        recognizedToken: b.recognizedToken,
-        parsedConstraint: b.parsedConstraint,
-      })),
-      regions: puzzle.regions.map((r) => ({
-        id: r.id,
-        color: r.color,
-        cellCount: r.cellIds.length,
-        cellIds: r.cellIds,
-        constraint: r.constraint,
-      })),
-      dominoes: puzzle.dominoes.map((d) => ({
-        id: d.id,
-        a: d.a,
-        b: d.b,
-        values: [d.a, d.b],
-      })),
-      cells: puzzle.cells.map((c) => ({
-        id: c.id,
-        row: c.row,
-        col: c.col,
-        componentId: c.componentId,
-      })),
-    };
+    const goldenData = serializePuzzle(puzzle);
 
     const targetJsonPath = path.join(outDir, `${baseName}.json`);
     fs.writeFileSync(targetJsonPath, JSON.stringify(goldenData, null, 2), 'utf-8');
-    console.log(`Saved golden: ${targetJsonPath} (valid=${goldenData.validation.valid}, ${goldenData.counts.badges} badges)`);
+    console.log(
+      `Saved golden: ${targetJsonPath} (valid=${debugData.validation.valid}, ${goldenData.cells.length} cells, ${goldenData.regions.length} regions, ${goldenData.dominoes.length} dominoes)`
+    );
   }
 }
 

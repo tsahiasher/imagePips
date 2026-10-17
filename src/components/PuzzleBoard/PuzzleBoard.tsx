@@ -93,16 +93,9 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
     }
   }
 
-  // Calculate badge positions for regions that have constraints
+  // Calculate badge positions dynamically from the region's cell coordinates
+  // (anchoring to the bottom-right-most cell in the region)
   const getBadgePosition = (region: Region): { cx: number; cy: number } => {
-    if (region.labelAnchor) {
-      return {
-        cx: padding + (region.labelAnchor.x - minCol) * cellSize,
-        cy: padding + (region.labelAnchor.y - minRow) * cellSize
-      };
-    }
-
-    // Default badge placement: Find extreme bottom-right vertex or edge of the region
     let maxR = -Infinity;
     let maxC = -Infinity;
     for (const cId of region.cellIds) {
@@ -113,7 +106,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
       }
     }
 
-    // Place badge at the bottom-right corner of that cell
+    // Place badge at the bottom-right corner of the bottom-right-most cell
     const cx = padding + (maxC - minCol + 1) * cellSize;
     const cy = padding + (maxR - minRow + 1) * cellSize;
     return { cx, cy };
@@ -233,6 +226,97 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = ({
             })}
           </g>
         )}
+
+        {/* Recessed board backing tray silhouette behind playable cells */}
+        <g className="board-backing" pointerEvents="none">
+          {(() => {
+            const pad = Math.max(5, cellSize * 0.085);
+            const borderPad = pad + 1.5;
+            const rxOuter = Math.max(11, cellSize * 0.22);
+            const rxInner = Math.max(9.5, cellSize * 0.2);
+
+            return (
+              <>
+                {/* Outer border silhouette */}
+                {puzzle.cells.map((cell) => {
+                  const x = padding + (cell.col - minCol) * cellSize;
+                  const y = padding + (cell.row - minRow) * cellSize;
+                  const hasRight = cellMap.has(`${cell.row},${cell.col + 1}`);
+                  const hasDown = cellMap.has(`${cell.row + 1},${cell.col}`);
+                  return (
+                    <React.Fragment key={`back_border_${cell.id}`}>
+                      <rect
+                        x={x - borderPad}
+                        y={y - borderPad}
+                        width={cellSize + borderPad * 2}
+                        height={cellSize + borderPad * 2}
+                        rx={rxOuter}
+                        ry={rxOuter}
+                        fill="#cbd5e1"
+                      />
+                      {hasRight && (
+                        <rect
+                          x={x + cellSize / 2}
+                          y={y - borderPad}
+                          width={cellSize}
+                          height={cellSize + borderPad * 2}
+                          fill="#cbd5e1"
+                        />
+                      )}
+                      {hasDown && (
+                        <rect
+                          x={x - borderPad}
+                          y={y + cellSize / 2}
+                          width={cellSize + borderPad * 2}
+                          height={cellSize}
+                          fill="#cbd5e1"
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+                {/* Inner recessed tray surface */}
+                {puzzle.cells.map((cell) => {
+                  const x = padding + (cell.col - minCol) * cellSize;
+                  const y = padding + (cell.row - minRow) * cellSize;
+                  const hasRight = cellMap.has(`${cell.row},${cell.col + 1}`);
+                  const hasDown = cellMap.has(`${cell.row + 1},${cell.col}`);
+                  return (
+                    <React.Fragment key={`back_fill_${cell.id}`}>
+                      <rect
+                        x={x - pad}
+                        y={y - pad}
+                        width={cellSize + pad * 2}
+                        height={cellSize + pad * 2}
+                        rx={rxInner}
+                        ry={rxInner}
+                        fill="#e2e8f0"
+                      />
+                      {hasRight && (
+                        <rect
+                          x={x + cellSize / 2}
+                          y={y - pad}
+                          width={cellSize}
+                          height={cellSize + pad * 2}
+                          fill="#e2e8f0"
+                        />
+                      )}
+                      {hasDown && (
+                        <rect
+                          x={x - pad}
+                          y={y + cellSize / 2}
+                          width={cellSize + pad * 2}
+                          height={cellSize}
+                          fill="#e2e8f0"
+                        />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </>
+            );
+          })()}
+        </g>
 
         {/* Playable cells */}
         <g className="board-cells">

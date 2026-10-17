@@ -1,5 +1,51 @@
 # Progress Log
 
+**2026-10-17 — NYT Pips UI polish (7 visual enhancements), `pips-build-puzzle` v1 JSON serialization, and symmetry-breaking solution counting. ✅ DONE**
+- Implemented 7 NYT Pips UI improvements, refactored puzzle JSON serialization to `pips-build-puzzle` v1, and added exact solution counting without equivalent in-region flips:
+  1. **NYT Pips UI Enhancements (1–7)**:
+     - `PuzzleBoard.tsx`: Added contiguous recessed board backing tray (`#e6d5cb` per connected component via dilated SVG mask) and dynamic region badge anchor fallback (bottom-right-most cell).
+     - `PuzzleCell.tsx`: Softened cell corner radius (`rx=9`, `inset=2.5`) and added inner recessed top-shadow bevel (`rgba(0,0,0,0.06)`).
+     - `Domino.tsx`: Separated placed domino face translucency (`fillOpacity=0.62` on white body rect) from pips/divider/border (`opacity=1` so pips stay solid crisp black), and added 3D bottom-edge chamfer lip (`#cbd5e1`) and inner top highlight to unplaced tray/drag dominoes.
+     - `RegionBoundary.tsx`: Replaced thin single-stroke boundary with dual-layer inset dashed stitching (`#ffffff` halo + `#332b28` dark cocoa dashed overlay, `strokeDasharray="6, 5"`).
+     - `ConditionBadge.tsx`: Upgraded diamond condition badges to rounded-corner diamonds (`rx=4.5`), subtle elevation shadow, and tighter multi-character tracking (`-0.04em`).
+     - `DominoTray.tsx`: Increased vertical row gap (`rowGap: '18px'`, `columnGap: '14px'`) so rotated vertical dominoes in the tray never crowd adjacent rows.
+  2. **`pips-build-puzzle` v1 Serialization & Golden Regeneration**:
+     - Created `src/domain/puzzleSerialization.ts` (`serializePuzzle`, `deserializePuzzle`, `hexToColorIndex`, `colorIndexToHex`) and re-exported in `src/domain/puzzle.ts`.
+     - Updated `src/domain/constraints.ts` to accept `"!="` as an alias for `"≠"` on import.
+     - Updated `VerificationScreen.tsx`, `ManualEditor.tsx`, `ImportScreen.tsx`, `RegionListEditor.tsx`, and `storage.ts` to export/import `pips-build-puzzle` v1 (with backward-compatible fallback for legacy JSONs) and navigates JSON imports to the Verification screen so the solvability badge and solution count are visible immediately.
+     - Regenerated `golden_results/game1.json` through `golden_results/game12.json` in `pips-build-puzzle` v1 format via `scripts/save_game_goldens.ts`.
+  3. **Solution Counting & In-Region Symmetry Breaking**:
+     - Updated `solvePuzzle` (`src/game/solver.ts`) and `SolvabilityBadge.tsx` to count up to `100` solutions (`1 solution`, `N solutions`, or `100+ solutions`).
+     - Eliminated equivalent domino flip permutations when both cells of a placed domino belong to the same region (or are both unconstrained), and enforced canonical domino group ordering (`minGroupIdx`) when multiple dominoes sit completely inside the same region.
+- Files touched:
+  - `src/domain/puzzleSerialization.ts` (new: `pips-build-puzzle` v1 serializer/deserializer)
+  - `src/domain/__tests__/puzzleSerialization.test.ts` (new: unit tests for `pips-build-puzzle` v1 round-trip and legacy fallback)
+  - `src/domain/puzzle.ts` (re-export serialization helpers, optional `labelAnchor`)
+  - `src/domain/constraints.ts` (accept `"!="` as alias for `"≠"`)
+  - `src/game/solver.ts` (count solutions up to `maxSolutions` with in-region domino flip & permutation symmetry breaking)
+  - `src/game/__tests__/solver.test.ts` (deserialize `pips-build-puzzle` v1 goldens + test in-region flip symmetry breaking)
+  - `src/game/__tests__/rotationAnchor.test.ts` (update placed domino SVG attribute assertions for `fill-opacity="0.62"` and `stroke-width="1.1"`)
+  - `src/components/EditorShared/SolvabilityBadge.tsx` (display exact solution count in solvability badge)
+  - `src/components/EditorShared/RegionListEditor.tsx` (align editor color palette with the 6 canonical Pips palette colors)
+  - `src/components/ImportScreen/ImportScreen.tsx` (deserialize imported JSON via `deserializePuzzle` and route to Verification screen)
+  - `src/components/ManualEditor/ManualEditor.tsx` (export/import using `serializePuzzle`/`deserializePuzzle`)
+  - `src/components/VerificationScreen/VerificationScreen.tsx` (export JSON using `serializePuzzle`)
+  - `src/persistence/storage.ts` (persist/load active puzzle via `serializePuzzle`/`deserializePuzzle`)
+  - `src/components/PuzzleBoard/PuzzleBoard.tsx` (recessed board backing tray + dynamic bottom-right badge anchor fallback)
+  - `src/components/PuzzleCell/PuzzleCell.tsx` (softer corner radius `rx=9` + inner recessed bevel)
+  - `src/components/Domino/Domino.tsx` (translucent placed face with opaque pips + 3D tile chamfer/bevel)
+  - `src/components/RegionBoundary/RegionBoundary.tsx` (inset dual-layer dashed region boundaries)
+  - `src/components/ConditionBadge/ConditionBadge.tsx` (rounded-corner diamond badge + typography tracking)
+  - `src/components/DominoTray/DominoTray.tsx` (increased vertical row gap)
+  - `scripts/save_game_goldens.ts` (emit `pips-build-puzzle` v1 JSON format)
+  - `src/importer/__tests__/savedGoldensJson.test.ts` (verify `serializePuzzle(puzzle)` matches `golden_results/game1..12.json`)
+  - `golden_results/game1.json` .. `golden_results/game12.json` (regenerated in `pips-build-puzzle` v1 format)
+  - `docs/DECISIONS.md` (Decision 17)
+  - `docs/PROGRESS.md` (this entry)
+- Proof:
+  - All 20 test suites (76 tests) passing (`npx vitest run`).
+  - Production build passing (`npm run build`).
+
 **2026-10-17 — Domino selection bold black border and reliable deselect on rotation, drag, or empty click. ✅ DONE**
 - Resolved domino selection and unselection styling and interaction transitions:
   1. **Selection Border & Opacity**:

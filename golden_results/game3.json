@@ -1,241 +1,74 @@
 {
-  "game": "game3.jpg",
-  "validation": {
-    "valid": true,
-    "errors": [],
-    "warnings": []
-  },
-  "counts": {
-    "cells": 10,
-    "dominoes": 5,
-    "regions": 6,
-    "badges": 4
-  },
-  "badges": [
-    {
-      "id": "badge_1",
-      "x": 722,
-      "y": 853,
-      "colorHex": "#a855f7",
-      "recognizedToken": "2",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 2
-      }
-    },
-    {
-      "id": "badge_2",
-      "x": 441,
-      "y": 993,
-      "colorHex": "#ec4899",
-      "recognizedToken": "10",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 10
-      }
-    },
-    {
-      "id": "badge_3",
-      "x": 722,
-      "y": 1133,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "8",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 8
-      }
-    },
-    {
-      "id": "badge_4",
-      "x": 722,
-      "y": 1274,
-      "colorHex": "#f97316",
-      "recognizedToken": ">2",
-      "parsedConstraint": {
-        "type": "greaterThan",
-        "value": 2
-      }
-    }
+  "format": "pips-build-puzzle",
+  "version": 1,
+  "rows": 4,
+  "cols": 4,
+  "cells": [
+    "0,1",
+    "0,2",
+    "0,3",
+    "1,0",
+    "1,1",
+    "1,2",
+    "2,0",
+    "2,2",
+    "2,3",
+    "3,3"
   ],
   "regions": [
     {
-      "id": "region_1",
-      "color": "#a855f7",
-      "cellCount": 3,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "0,1",
         "0,2",
         "0,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 2
-      }
+      "condition": "2"
     },
     {
-      "id": "region_2",
-      "color": "#ec4899",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "1,0",
         "1,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 10
-      }
+      "condition": "10"
     },
     {
-      "id": "region_3",
-      "color": "#dfccc4",
-      "cellCount": 1,
-      "cellIds": [
-        "1,2"
-      ],
-      "constraint": null
-    },
-    {
-      "id": "region_4",
-      "color": "#dfccc4",
-      "cellCount": 1,
-      "cellIds": [
-        "2,0"
-      ],
-      "constraint": null
-    },
-    {
-      "id": "region_5",
-      "color": "#14b8a6",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "2,2",
         "2,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 8
-      }
+      "condition": "8"
     },
     {
-      "id": "region_6",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "3,3"
       ],
-      "constraint": {
-        "type": "greaterThan",
-        "value": 2
-      }
+      "condition": ">2"
     }
   ],
   "dominoes": [
-    {
-      "id": "d_1",
-      "a": 0,
-      "b": 0,
-      "values": [
-        0,
-        0
-      ]
-    },
-    {
-      "id": "d_2",
-      "a": 6,
-      "b": 6,
-      "values": [
-        6,
-        6
-      ]
-    },
-    {
-      "id": "d_3",
-      "a": 5,
-      "b": 3,
-      "values": [
-        5,
-        3
-      ]
-    },
-    {
-      "id": "d_4",
-      "a": 4,
-      "b": 2,
-      "values": [
-        4,
-        2
-      ]
-    },
-    {
-      "id": "d_5",
-      "a": 3,
-      "b": 2,
-      "values": [
-        3,
-        2
-      ]
-    }
-  ],
-  "cells": [
-    {
-      "id": "0,1",
-      "row": 0,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "0,2",
-      "row": 0,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "0,3",
-      "row": 0,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,0",
-      "row": 1,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,1",
-      "row": 1,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,2",
-      "row": 1,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,0",
-      "row": 2,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,2",
-      "row": 2,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,3",
-      "row": 2,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,3",
-      "row": 3,
-      "col": 3,
-      "componentId": "comp_1"
-    }
+    [
+      0,
+      0
+    ],
+    [
+      6,
+      6
+    ],
+    [
+      5,
+      3
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      3,
+      2
+    ]
   ]
 }

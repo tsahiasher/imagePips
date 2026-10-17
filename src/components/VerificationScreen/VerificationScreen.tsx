@@ -8,7 +8,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Constraint } from '../../domain/constraints';
-import { Cell, Puzzle, Region, computeConnectedComponents } from '../../domain/puzzle';
+import { Cell, Puzzle, Region, computeConnectedComponents, serializePuzzle } from '../../domain/puzzle';
 import { PuzzleBoard } from '../PuzzleBoard/PuzzleBoard';
 import { PALETTE, RegionListEditor } from '../EditorShared/RegionListEditor';
 import { DominoInventoryEditor } from '../EditorShared/DominoInventoryEditor';
@@ -319,11 +319,12 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   };
 
   const handleExportPuzzle = () => {
-    const blob = new Blob([JSON.stringify(puzzle, null, 2)], { type: 'application/json' });
+    const serialized = serializePuzzle(puzzle);
+    const blob = new Blob([JSON.stringify(serialized, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${(puzzle.name || 'imported_puzzle').toLowerCase().replace(/\s+/g, '_')}.json`;
+    a.download = `${(puzzle.name || 'pips_puzzle').toLowerCase().replace(/\s+/g, '_')}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -615,8 +616,11 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '8px', gap: '6px', flexWrap: 'wrap' }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-                  RECONSTRUCTED PUZZLE
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                    RECONSTRUCTED PUZZLE
+                  </div>
+                  <SolvabilityBadge puzzle={puzzle} />
                 </div>
                 {showEditPane && (
                   <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '2px' }}>

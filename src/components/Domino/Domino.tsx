@@ -51,24 +51,30 @@ export const Domino: React.FC<DominoProps> = ({
   const ariaLabel = `Domino ${domino.a} and ${domino.b}, ${orientation}${reversed ? ' reversed' : ''}`;
 
   let strokeColor = ariaSelected ? '#6366f1' : '#334155';
-  let strokeWidth = ariaSelected ? 2.5 : 1.4;
+  let strokeWidth = ariaSelected ? 2.5 : 1.5;
   let opacity = 1;
+  let bodyFillOpacity = 1;
 
   if (isGhost) {
     opacity = 0.6;
   } else if (isPlaced) {
     if (isSelected) {
-      // Selected placed domino: solid white, bold black border
+      // Selected placed domino: solid white face, bold black border
       opacity = 1;
+      bodyFillOpacity = 1;
       strokeColor = '#000000';
       strokeWidth = 2.4;
     } else {
-      // Settled placed domino: 58% transparent, thin black edge
-      opacity = 0.58;
+      // Settled placed domino: translucent white face (0.62) so region color shines through,
+      // while pips and border stay at full 1.0 opacity for crisp readability
+      opacity = 1;
+      bodyFillOpacity = 0.62;
       strokeColor = '#000000';
-      strokeWidth = 0.9;
+      strokeWidth = 1.1;
     }
   }
+
+  const rimInset = Math.max(2, cellSize * 0.045);
 
   return (
     <svg
@@ -82,12 +88,12 @@ export const Domino: React.FC<DominoProps> = ({
         userSelect: 'none',
         cursor: isDragging ? 'grabbing' : 'grab',
         filter: isDragging
-          ? 'drop-shadow(0 14px 16px rgba(0,0,0,0.5))'
+          ? 'drop-shadow(0 14px 18px rgba(15, 23, 42, 0.45))'
           : isPlaced
           ? isSelected
-            ? 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25))'
-            : 'none'
-          : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+            ? 'drop-shadow(0 4px 10px rgba(15, 23, 42, 0.28))'
+            : 'drop-shadow(0 1px 2px rgba(15, 23, 42, 0.14))'
+          : 'drop-shadow(0 3px 5px rgba(15, 23, 42, 0.22))',
         opacity,
         transition: isDragging ? 'none' : 'opacity 0.15s ease, filter 0.15s ease',
         ...style
@@ -99,7 +105,7 @@ export const Domino: React.FC<DominoProps> = ({
       onPointerDown={onPointerDown}
       onClick={onClick}
     >
-      {/* Outer rounded domino rectangle */}
+      {/* Outer 3D tile body & border */}
       <rect
         x={0.5}
         y={0.5}
@@ -107,22 +113,39 @@ export const Domino: React.FC<DominoProps> = ({
         height={height - 1}
         rx={rx}
         ry={rx}
-        fill="#ffffff"
+        fill={isPlaced && !isSelected ? '#ffffff' : '#e2e8f0'}
+        fillOpacity={bodyFillOpacity}
         stroke={strokeColor}
         strokeWidth={strokeWidth}
       />
 
-      {/* Internal subtle bevel / inset highlight (only when unplaced in tray/dragging) */}
-      {!isPlaced && (
+      {/* Raised 3D top face (chamfered inner surface that stays rotation-invariant across 0/90/180/270 deg) */}
+      {(!isPlaced || isSelected) && (
         <rect
-          x={2}
-          y={2}
-          width={width - 4}
-          height={height - 4}
-          rx={rx - 1}
-          ry={rx - 1}
+          x={rimInset}
+          y={rimInset}
+          width={Math.max(0, width - rimInset * 2)}
+          height={Math.max(0, height - rimInset * 2)}
+          rx={Math.max(2, rx - 1.5)}
+          ry={Math.max(2, rx - 1.5)}
+          fill="#ffffff"
+          stroke="rgba(255, 255, 255, 0.9)"
+          strokeWidth={1}
+          pointerEvents="none"
+        />
+      )}
+
+      {/* Subtle inner glass rim when settled on board */}
+      {isPlaced && !isSelected && (
+        <rect
+          x={1.8}
+          y={1.8}
+          width={Math.max(0, width - 3.6)}
+          height={Math.max(0, height - 3.6)}
+          rx={Math.max(2, rx - 1)}
+          ry={Math.max(2, rx - 1)}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.7)"
+          stroke="rgba(255, 255, 255, 0.65)"
           strokeWidth={1}
           pointerEvents="none"
         />
@@ -135,8 +158,8 @@ export const Domino: React.FC<DominoProps> = ({
           y1={margin * 1.5}
           x2={halfWidth}
           y2={height - margin * 1.5}
-          stroke="#cbd5e1"
-          strokeWidth={1.5}
+          stroke={isPlaced && !isSelected ? 'rgba(15, 23, 42, 0.28)' : '#cbd5e1'}
+          strokeWidth={1.6}
           strokeLinecap="round"
         />
       ) : (
@@ -145,20 +168,20 @@ export const Domino: React.FC<DominoProps> = ({
           y1={halfHeight}
           x2={width - margin * 1.5}
           y2={halfHeight}
-          stroke="#cbd5e1"
-          strokeWidth={1.5}
+          stroke={isPlaced && !isSelected ? 'rgba(15, 23, 42, 0.28)' : '#cbd5e1'}
+          strokeWidth={1.6}
           strokeLinecap="round"
         />
       )}
 
       {/* Half 1 pips */}
-      <g transform={isHorizontal ? 'translate(0, 0)' : 'translate(0, 0)'}>
+      <g transform="translate(0, 0)">
         <PipPattern
           value={val1}
           width={halfWidth}
           height={halfHeight}
-          pipRadius={Math.min(halfWidth, halfHeight) * 0.11}
-          pipColor="#1e293b"
+          pipRadius={Math.min(halfWidth, halfHeight) * 0.112}
+          pipColor="#0f172a"
         />
       </g>
 
@@ -174,8 +197,8 @@ export const Domino: React.FC<DominoProps> = ({
           value={val2}
           width={halfWidth}
           height={halfHeight}
-          pipRadius={Math.min(halfWidth, halfHeight) * 0.11}
-          pipColor="#1e293b"
+          pipRadius={Math.min(halfWidth, halfHeight) * 0.112}
+          pipColor="#0f172a"
         />
       </g>
     </svg>

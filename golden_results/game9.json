@@ -1,376 +1,124 @@
 {
-  "game": "game9.jpg",
-  "validation": {
-    "valid": true,
-    "errors": [],
-    "warnings": []
-  },
-  "counts": {
-    "cells": 16,
-    "dominoes": 8,
-    "regions": 8,
-    "badges": 8
-  },
-  "badges": [
-    {
-      "id": "badge_1",
-      "x": 444,
-      "y": 587,
-      "colorHex": "#a855f7",
-      "recognizedToken": "<4",
-      "parsedConstraint": {
-        "type": "lessThan",
-        "value": 4
-      }
-    },
-    {
-      "id": "badge_2",
-      "x": 344,
-      "y": 689,
-      "colorHex": "#ec4899",
-      "recognizedToken": "=",
-      "parsedConstraint": {
-        "type": "equal"
-      }
-    },
-    {
-      "id": "badge_3",
-      "x": 546,
-      "y": 689,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "=",
-      "parsedConstraint": {
-        "type": "equal"
-      }
-    },
-    {
-      "id": "badge_4",
-      "x": 344,
-      "y": 791,
-      "colorHex": "#f97316",
-      "recognizedToken": "=",
-      "parsedConstraint": {
-        "type": "equal"
-      }
-    },
-    {
-      "id": "badge_5",
-      "x": 445,
-      "y": 790,
-      "colorHex": "#0284c7",
-      "recognizedToken": "<1",
-      "parsedConstraint": {
-        "type": "lessThan",
-        "value": 1
-      }
-    },
-    {
-      "id": "badge_6",
-      "x": 243,
-      "y": 993,
-      "colorHex": "#a855f7",
-      "recognizedToken": "6",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 6
-      }
-    },
-    {
-      "id": "badge_7",
-      "x": 445,
-      "y": 993,
-      "colorHex": "#ec4899",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_8",
-      "x": 546,
-      "y": 993,
-      "colorHex": "#84cc16",
-      "recognizedToken": "20",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 20
-      }
-    }
+  "format": "pips-build-puzzle",
+  "version": 1,
+  "rows": 5,
+  "cols": 4,
+  "cells": [
+    "0,2",
+    "1,0",
+    "1,1",
+    "1,2",
+    "1,3",
+    "2,0",
+    "2,1",
+    "2,2",
+    "2,3",
+    "3,0",
+    "3,2",
+    "3,3",
+    "4,0",
+    "4,1",
+    "4,2",
+    "4,3"
   ],
   "regions": [
     {
-      "id": "region_1",
-      "color": "#a855f7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "0,2"
       ],
-      "constraint": {
-        "type": "lessThan",
-        "value": 4
-      }
+      "condition": "<4"
     },
     {
-      "id": "region_2",
-      "color": "#ec4899",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "1,0",
         "1,1"
       ],
-      "constraint": {
-        "type": "equal"
-      }
+      "condition": "="
     },
     {
-      "id": "region_3",
-      "color": "#14b8a6",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "1,2",
         "1,3"
       ],
-      "constraint": {
-        "type": "equal"
-      }
+      "condition": "="
     },
     {
-      "id": "region_4",
-      "color": "#f97316",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "2,0",
         "2,1"
       ],
-      "constraint": {
-        "type": "equal"
-      }
+      "condition": "="
     },
     {
-      "id": "region_5",
-      "color": "#0284c7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 4,
+      "cells": [
         "2,2"
       ],
-      "constraint": {
-        "type": "lessThan",
-        "value": 1
-      }
+      "condition": "<1"
     },
     {
-      "id": "region_6",
-      "color": "#84cc16",
-      "cellCount": 4,
-      "cellIds": [
+      "color": 5,
+      "cells": [
         "2,3",
         "3,3",
         "4,3",
         "3,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 20
-      }
+      "condition": "20"
     },
     {
-      "id": "region_7",
-      "color": "#a855f7",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "3,0",
         "4,0"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 6
-      }
+      "condition": "6"
     },
     {
-      "id": "region_8",
-      "color": "#ec4899",
-      "cellCount": 2,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "4,1",
         "4,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     }
   ],
   "dominoes": [
-    {
-      "id": "d_1",
-      "a": 4,
-      "b": 2,
-      "values": [
-        4,
-        2
-      ]
-    },
-    {
-      "id": "d_2",
-      "a": 3,
-      "b": 3,
-      "values": [
-        3,
-        3
-      ]
-    },
-    {
-      "id": "d_3",
-      "a": 5,
-      "b": 2,
-      "values": [
-        5,
-        2
-      ]
-    },
-    {
-      "id": "d_4",
-      "a": 3,
-      "b": 4,
-      "values": [
-        3,
-        4
-      ]
-    },
-    {
-      "id": "d_5",
-      "a": 1,
-      "b": 4,
-      "values": [
-        1,
-        4
-      ]
-    },
-    {
-      "id": "d_6",
-      "a": 5,
-      "b": 5,
-      "values": [
-        5,
-        5
-      ]
-    },
-    {
-      "id": "d_7",
-      "a": 4,
-      "b": 0,
-      "values": [
-        4,
-        0
-      ]
-    },
-    {
-      "id": "d_8",
-      "a": 5,
-      "b": 4,
-      "values": [
-        5,
-        4
-      ]
-    }
-  ],
-  "cells": [
-    {
-      "id": "0,2",
-      "row": 0,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,0",
-      "row": 1,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,1",
-      "row": 1,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,2",
-      "row": 1,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,3",
-      "row": 1,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,0",
-      "row": 2,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,1",
-      "row": 2,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,2",
-      "row": 2,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,3",
-      "row": 2,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,0",
-      "row": 3,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,2",
-      "row": 3,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,3",
-      "row": 3,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,0",
-      "row": 4,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,1",
-      "row": 4,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,2",
-      "row": 4,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,3",
-      "row": 4,
-      "col": 3,
-      "componentId": "comp_1"
-    }
+    [
+      4,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      5,
+      2
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      5,
+      5
+    ],
+    [
+      4,
+      0
+    ],
+    [
+      5,
+      4
+    ]
   ]
 }

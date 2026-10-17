@@ -5,6 +5,8 @@ import { Puzzle } from '../domain/puzzle';
 export interface SolveResult {
   solvable: boolean;
   solution?: DominoPlacement[];
+  solutionCount: number;
+  capped?: boolean;
   stepsExplored: number;
   timedOut?: boolean;
 }
@@ -30,12 +32,16 @@ interface RegionTracker {
  * - Incremental region constraint pruning (sum, lessThan, greaterThan, equal, different)
  * - Identical-domino symmetry breaking
  */
-export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResult {
+export function solvePuzzle(
+  puzzle: Puzzle,
+  maxSteps: number = 60000,
+  maxSolutions: number = 1
+): SolveResult {
   const numCells = puzzle.cells.length;
   const numDominoes = puzzle.dominoes.length;
 
   if (numCells === 0 || numCells !== numDominoes * 2 || numCells % 2 !== 0) {
-    return { solvable: false, stepsExplored: 0 };
+    return { solvable: false, solutionCount: 0, stepsExplored: 0 };
   }
 
   // Checkerboard parity check: every domino covers 1 even and 1 odd (row + col) cell
@@ -45,7 +51,7 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
     parityBalance += (c.row + c.col) & 1 ? 1 : -1;
   }
   if (parityBalance !== 0) {
-    return { solvable: false, stepsExplored: 0 };
+    return { solvable: false, solutionCount: 0, stepsExplored: 0 };
   }
 
   // Map cell IDs and coordinates to 0..numCells-1
@@ -74,7 +80,7 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
       }
     }
     if (adj[i].length === 0) {
-      return { solvable: false, stepsExplored: 0 };
+      return { solvable: false, solutionCount: 0, stepsExplored: 0 };
     }
   }
 
@@ -110,20 +116,20 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
 
   for (const reg of regions) {
     if (reg.unfilled < 0) {
-      return { solvable: false, stepsExplored: 0 };
+      return { solvable: false, solutionCount: 0, stepsExplored: 0 };
     }
     if (reg.constraint) {
       if (reg.constraint.type === 'different' && reg.unfilled > 7) {
-        return { solvable: false, stepsExplored: 0 };
+        return { solvable: false, solutionCount: 0, stepsExplored: 0 };
       }
       if (reg.constraint.type === 'sum' && (reg.constraint.value < 0 || reg.constraint.value > reg.unfilled * 6)) {
-        return { solvable: false, stepsExplored: 0 };
+        return { solvable: false, solutionCount: 0, stepsExplored: 0 };
       }
       if (reg.constraint.type === 'lessThan' && reg.constraint.value <= 0) {
-        return { solvable: false, stepsExplored: 0 };
+        return { solvable: false, solutionCount: 0, stepsExplored: 0 };
       }
       if (reg.constraint.type === 'greaterThan' && reg.unfilled * 6 <= reg.constraint.value) {
-        return { solvable: false, stepsExplored: 0 };
+        return { solvable: false, solutionCount: 0, stepsExplored: 0 };
       }
     }
   }
@@ -225,22 +231,37 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
   }
 
   const placementStack: Array<{ u: number; v: number; groupIdx: number; valU: number; valV: number }> = [];
+  let firstSolutionStack: Array<{ u: number; v: number; groupIdx: number; valU: number; valV: number }> | null = null;
+  let solutionCount = 0;
+  let capped = false;
   let steps = 0;
   let timedOut = false;
 
   function backtrack(placedCount: number): boolean {
     if (placedCount === numDominoes) {
-      return true;
+      solutionCount++;
+      if (!firstSolutionStack) {
+        firstSolutionStack = placementStack.map((item) => ({ ...item }));
+      }
+      if (solutionCount >= maxSolutions) {
+        if (maxSolutions > 1) {
+          capped = true;
+        }
+        return true;
+      }
+      return false;
     }
     if (++steps > maxSteps) {
       timedOut = true;
+      if (solutionCount > 0) {
+        capped = true;
+      }
       return false;
     }
 
-    // Select uncovered cell with minimum remaining degree (and check for isolated uncovered cells)
+    // Select uncovered cell with minimum remaining degree, tie-breaking by tightest constraint
     let bestCell = -1;
-    let minDeg = 99;
-    let bestRegionTightness = 999;
+    let bestScore = 999999;
 
     for (let i = 0; i < numCells; i++) {
       if (covered[i]) continue;
@@ -250,10 +271,23 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
         return false;
       }
       const rIdx = cellRegionIdx[i];
-      const tightness = rIdx !== -1 && regions[rIdx].constraint ? regions[rIdx].unfilled : 50;
-      if (deg < minDeg || (deg === minDeg && tightness < bestRegionTightness)) {
-        minDeg = deg;
-        bestRegionTightness = tightness;
+      const reg = rIdx !== -1 ? regions[rIdx] : null;
+      const c = reg?.constraint ?? null;
+      const tightness = reg && c ? reg.unfilled : 50;
+
+      let score: number;
+      if (deg === 1) {
+        score = tightness; // 1..50: geometrically forced degree-1 cell
+      } else if (reg && c && c.type === 'sum' && (reg.unfilled === 1 || c.value === 0 || c.value === reg.unfilled * 6)) {
+        score = 60 + deg; // 62..64: exact pip value in this cell is forced!
+      } else if (reg && c && c.type === 'equal' && reg.mask !== 0) {
+        score = 70 + deg; // 72..74: exact pip value in this cell is already locked by 'equal'!
+      } else {
+        score = deg * 100 + tightness;
+      }
+
+      if (score < bestScore) {
+        bestScore = score;
         bestCell = i;
       }
     }
@@ -270,37 +304,91 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
     for (const v of adj[u]) {
       if (covered[v]) continue;
 
-      // Quick lookahead: covering v must not isolate any other neighbor of u or v (unless that neighbor is the only one left, etc.)
-      let createsIsolated = false;
+      // Quick lookahead: covering u and v must not isolate any neighbor of u or v
+      let createsDeadEnd = false;
       for (const nbU of adj[u]) {
         if (nbU !== v && !covered[nbU] && remDegree[nbU] === 0) {
-          createsIsolated = true;
+          createsDeadEnd = true;
           break;
         }
       }
-      if (!createsIsolated) {
+      if (!createsDeadEnd) {
         for (const nbV of adj[v]) {
           if (!covered[nbV] && remDegree[nbV] - 1 === 0) {
-            createsIsolated = true;
+            createsDeadEnd = true;
             break;
           }
         }
       }
-      if (createsIsolated) continue;
+      if (createsDeadEnd) continue;
 
       covered[v] = 1;
       for (const nb of adj[v]) {
         remDegree[nb]--;
       }
 
+      // Check if two degree-1 uncovered cells now compete for the same single neighbor
+      for (let i = 0; i < numCells; i++) {
+        if (!covered[i] && remDegree[i] === 1) {
+          // Find its single uncovered neighbor w
+          let w = -1;
+          for (const nb of adj[i]) {
+            if (!covered[nb]) {
+              w = nb;
+              break;
+            }
+          }
+          if (w !== -1) {
+            for (const nbW of adj[w]) {
+              if (nbW !== i && !covered[nbW] && remDegree[nbW] === 1) {
+                createsDeadEnd = true;
+                break;
+              }
+            }
+          }
+          if (createsDeadEnd) break;
+        }
+      }
+
+      if (createsDeadEnd) {
+        for (const nb of adj[v]) {
+          remDegree[nb]++;
+        }
+        covered[v] = 0;
+        continue;
+      }
+
       const rV = cellRegionIdx[v];
+      const effRU = rU !== -1 && regions[rU].constraint ? rU : -1;
+      const effRV = rV !== -1 && regions[rV].constraint ? rV : -1;
+      const sameEffectiveRegion = effRU === effRV;
+
+      // Symmetry breaking: if an earlier domino was also placed completely within this same region,
+      // enforce non-decreasing domino group index so permuting two dominoes inside one region isn't double-counted.
+      let minGroupIdx = 0;
+      if (sameEffectiveRegion) {
+        for (let s = placementStack.length - 1; s >= 0; s--) {
+          const prev = placementStack[s];
+          const prevRU = cellRegionIdx[prev.u];
+          const prevRV = cellRegionIdx[prev.v];
+          const prevEffU = prevRU !== -1 && regions[prevRU].constraint ? prevRU : -1;
+          const prevEffV = prevRV !== -1 && regions[prevRV].constraint ? prevRV : -1;
+          if (prevEffU === effRU && prevEffV === effRV) {
+            minGroupIdx = prev.groupIdx;
+            break;
+          }
+        }
+      }
 
       // Try each available domino group
-      for (let gIdx = 0; gIdx < dominoGroups.length; gIdx++) {
+      for (let gIdx = minGroupIdx; gIdx < dominoGroups.length; gIdx++) {
         const grp = dominoGroups[gIdx];
         if (grp.usedCount >= grp.ids.length) continue;
 
-        const orientations = grp.a === grp.b ? [[grp.a, grp.b]] : [[grp.a, grp.b], [grp.b, grp.a]];
+        const orientations =
+          grp.a === grp.b || sameEffectiveRegion
+            ? [[grp.a, grp.b]]
+            : [[grp.a, grp.b], [grp.b, grp.a]];
 
         for (const [valU, valV] of orientations) {
           if (!canPlaceValues(u, valU, v, valV)) continue;
@@ -367,15 +455,17 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
     return false;
   }
 
-  const solved = backtrack(0);
-  if (!solved) {
-    return { solvable: false, stepsExplored: steps, timedOut };
+  backtrack(0);
+  if (solutionCount === 0 || !firstSolutionStack) {
+    return { solvable: false, solutionCount: 0, stepsExplored: steps, timedOut };
   }
 
-  // Convert placementStack to DominoPlacement[]
+  // Convert firstSolutionStack to DominoPlacement[]
   const groupAllocCount = new Int32Array(dominoGroups.length);
   const dominoMap = new Map(puzzle.dominoes.map((d) => [d.id, d]));
-  const solution: DominoPlacement[] = placementStack.map((item) => {
+  const solution: DominoPlacement[] = (
+    firstSolutionStack as Array<{ u: number; v: number; groupIdx: number; valU: number; valV: number }>
+  ).map((item) => {
     const grp = dominoGroups[item.groupIdx];
     const dominoId = grp.ids[groupAllocCount[item.groupIdx]++];
     const domDef = dominoMap.get(dominoId)!;
@@ -408,6 +498,9 @@ export function solvePuzzle(puzzle: Puzzle, maxSteps: number = 60000): SolveResu
   return {
     solvable: true,
     solution,
-    stepsExplored: steps
+    solutionCount,
+    capped,
+    stepsExplored: steps,
+    timedOut
   };
 }

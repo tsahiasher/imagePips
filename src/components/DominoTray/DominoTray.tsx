@@ -45,12 +45,13 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
   const trayCellSize = isLarge ? 34 : isMedium ? 38 : 42;
   const slotWidth = trayCellSize * 2 + 4;
   const slotHeight = trayCellSize + 4;
-  const gap = 8;
+  const colGap = 8;
+  const rowGap = isLarge ? 14 : 16;
 
   // Expected rows based on total puzzle capacity to lock tray height permanently
   const colsPerRow = isLarge ? 5 : isMedium ? 4 : count <= 4 ? count : 3;
   const expectedRows = Math.max(1, Math.ceil(count / colsPerRow));
-  const expectedContentHeight = expectedRows * slotHeight + (expectedRows - 1) * gap;
+  const expectedContentHeight = expectedRows * slotHeight + (expectedRows - 1) * rowGap;
 
   // Track monotonic angles for smooth clockwise tray rotations
   const prevRotRef = React.useRef<Record<string, number>>({});
@@ -75,7 +76,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
       className={`domino-tray-wrapper ${className}`}
       style={{
         width: '100%',
-        paddingTop: '10px',
+        paddingTop: '12px',
         paddingLeft: '10px',
         paddingRight: '10px',
         paddingBottom: 'max(84px, calc(env(safe-area-inset-bottom, 0px) + 76px))',
@@ -98,12 +99,13 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: `${gap}px`,
+          columnGap: `${colGap}px`,
+          rowGap: `${rowGap}px`,
           justifyContent: 'center',
           alignItems: 'center',
-          maxWidth: `${colsPerRow * slotWidth + (colsPerRow - 1) * gap + 4}px`,
+          maxWidth: `${colsPerRow * slotWidth + (colsPerRow - 1) * colGap + 4}px`,
           minHeight: `${expectedContentHeight}px`,
-          padding: '2px',
+          padding: '4px 2px',
           overflow: 'visible'
         }}
       >

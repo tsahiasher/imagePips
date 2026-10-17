@@ -28,12 +28,15 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
 
   const text = formatConstraint(constraint);
   const half = size / 2;
-  const diamondPath = `M ${cx} ${cy - half} L ${cx + half} ${cy} L ${cx} ${cy + half} L ${cx - half} ${cy} Z`;
+  // Square side length so that its rotated diagonal matches `size`
+  const boxSize = size * 0.74;
+  const boxHalf = boxSize / 2;
+  const cornerRadius = Math.max(3.5, size * 0.13);
 
-  // Position for the small red error dot (adjacent to upper-right vertex)
-  const dotX = cx + half * 0.85;
-  const dotY = cy - half * 0.85;
-  const dotR = Math.max(3.5, size * 0.16);
+  // Position for the status indicator dot (adjacent to upper-right edge of diamond)
+  const dotX = cx + half * 0.72;
+  const dotY = cy - half * 0.72;
+  const dotR = Math.max(4.5, size * 0.17);
 
   const ariaDescription = invalid
     ? `Condition ${text} is violated`
@@ -50,37 +53,75 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
       {/* Selection halo when active */}
       {isSelected && (
         <>
-          <path
-            d={diamondPath}
+          <rect
+            x={cx - boxHalf}
+            y={cy - boxHalf}
+            width={boxSize}
+            height={boxSize}
+            rx={cornerRadius}
+            ry={cornerRadius}
+            transform={`rotate(45 ${cx} ${cy})`}
             fill="none"
             stroke="#0f172a"
-            strokeWidth={size * 0.28}
+            strokeWidth={size * 0.26}
             strokeLinejoin="round"
             opacity={0.85}
           />
-          <path
-            d={diamondPath}
+          <rect
+            x={cx - boxHalf}
+            y={cy - boxHalf}
+            width={boxSize}
+            height={boxSize}
+            rx={cornerRadius}
+            ry={cornerRadius}
+            transform={`rotate(45 ${cx} ${cy})`}
             fill="none"
             stroke="#ffffff"
-            strokeWidth={size * 0.16}
+            strokeWidth={size * 0.14}
             strokeLinejoin="round"
           />
         </>
       )}
 
-      {/* Drop shadow filter or subtle under-layer */}
-      <path
-        d={diamondPath}
-        fill="rgba(0, 0, 0, 0.25)"
-        transform={`translate(0, ${size * 0.08})`}
+      {/* Subtle drop shadow under-layer */}
+      <rect
+        x={cx - boxHalf}
+        y={cy - boxHalf + size * 0.06}
+        width={boxSize}
+        height={boxSize}
+        rx={cornerRadius}
+        ry={cornerRadius}
+        transform={`rotate(45 ${cx} ${cy + size * 0.06})`}
+        fill="rgba(15, 23, 42, 0.28)"
       />
 
-      {/* Main diamond body */}
-      <path
-        d={diamondPath}
+      {/* Outer dark contrast hairline so light region badges pop */}
+      <rect
+        x={cx - boxHalf}
+        y={cy - boxHalf}
+        width={boxSize}
+        height={boxSize}
+        rx={cornerRadius}
+        ry={cornerRadius}
+        transform={`rotate(45 ${cx} ${cy})`}
+        fill="none"
+        stroke="rgba(15, 23, 42, 0.35)"
+        strokeWidth={isSelected ? 3.5 : 3}
+        strokeLinejoin="round"
+      />
+
+      {/* Main rounded diamond body */}
+      <rect
+        x={cx - boxHalf}
+        y={cy - boxHalf}
+        width={boxSize}
+        height={boxSize}
+        rx={cornerRadius}
+        ry={cornerRadius}
+        transform={`rotate(45 ${cx} ${cy})`}
         fill={color}
         stroke="#ffffff"
-        strokeWidth={isSelected ? 2.5 : 2}
+        strokeWidth={isSelected ? 2.4 : 1.8}
         strokeLinejoin="round"
       />
 
@@ -89,12 +130,15 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         x={cx}
         y={cy}
         fill="#ffffff"
+        stroke="rgba(15, 23, 42, 0.22)"
+        strokeWidth={0.6}
+        paintOrder="stroke fill"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={text.length >= 3 ? size * 0.36 : size * 0.48}
+        fontSize={text.length >= 3 ? size * 0.35 : text.length === 2 ? size * 0.41 : size * 0.46}
         fontWeight="900"
         fontFamily="var(--font-sans), sans-serif"
-        letterSpacing={text.length >= 3 ? '-0.05em' : 'normal'}
+        letterSpacing={text.length >= 3 ? '-0.04em' : '-0.01em'}
         pointerEvents="none"
       >
         {text}
@@ -103,11 +147,10 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
       {/* Red error indicator dot when condition is invalid */}
       {invalid && (
         <g className="error-dot" role="alert" aria-label="Condition unsatisfied">
-          {/* White border ring to make red dot pop against any background */}
           <circle
             cx={dotX}
             cy={dotY}
-            r={dotR + 1.2}
+            r={dotR + 1.3}
             fill="#ffffff"
           />
           <circle

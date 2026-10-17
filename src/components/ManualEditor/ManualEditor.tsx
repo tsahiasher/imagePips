@@ -2,7 +2,15 @@ import React, { useMemo, useState } from 'react';
 import { ArrowLeft, Play, Download, Upload } from 'lucide-react';
 import { Constraint } from '../../domain/constraints';
 import { DominoDefinition } from '../../domain/domino';
-import { Cell, Puzzle, Region, computeConnectedComponents } from '../../domain/puzzle';
+import {
+  Cell,
+  NEUTRAL_CELL_COLOR,
+  Puzzle,
+  Region,
+  computeConnectedComponents,
+  deserializePuzzle,
+  serializePuzzle
+} from '../../domain/puzzle';
 import { PALETTE, RegionListEditor } from '../EditorShared/RegionListEditor';
 import { DominoInventoryEditor } from '../EditorShared/DominoInventoryEditor';
 import { SolvabilityBadge } from '../EditorShared/SolvabilityBadge';
@@ -182,14 +190,38 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
       componentId: componentMap.get(c.id) ?? 'comp_1'
     }));
 
+    const activeRegions: Region[] = regions
+      .map((r) => ({
+        ...r,
+        cellIds: r.cellIds.filter((id) => playableKeys.has(id))
+      }))
+      .filter((r) => r.cellIds.length > 0);
+
+    const assignedSet = new Set<string>();
+    for (const r of activeRegions) {
+      for (const cid of r.cellIds) {
+        assignedSet.add(cid);
+      }
+    }
+
+    const unassignedCellIds = finalCells
+      .map((c) => c.id)
+      .filter((id) => !assignedSet.has(id));
+
+    if (unassignedCellIds.length > 0) {
+      activeRegions.push({
+        id: 'reg_unconstrained',
+        cellIds: unassignedCellIds,
+        color: NEUTRAL_CELL_COLOR,
+        constraint: null
+      });
+    }
+
     return {
       id: initialPuzzle?.id ?? `custom_editor`,
       name: name || 'Custom Puzzle',
       cells: finalCells,
-      regions: regions.map((r) => ({
-        ...r,
-        cellIds: r.cellIds.filter((id) => playableKeys.has(id))
-      })),
+      regions: activeRegions,
       dominoes
     };
   }, [initialPuzzle?.id, name, playableKeys, regions, dominoes]);
@@ -216,12 +248,9 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const handleExportPuzzle = () => {
-    const exportPuzzle: Puzzle = {
-      ...currentPuzzle,
-      id: initialPuzzle?.id ?? `custom_${Date.now()}`
-    };
+    const serialized = serializePuzzle(currentPuzzle);
 
-    const blob = new Blob([JSON.stringify(exportPuzzle, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(serialized, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -240,26 +269,37 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
     reader.onload = (event) => {
       try {
         const text = event.target?.result as string;
-        const parsed = JSON.parse(text) as Puzzle;
-        if (!parsed || !Array.isArray(parsed.cells) || !Array.isArray(parsed.dominoes)) {
-          alert('Invalid puzzle file format.');
-          return;
-        }
+        const rawJson = JSON.parse(text);
+        const imported = deserializePuzzle(rawJson);
 
-        setName(parsed.name || 'Imported Puzzle');
-        const keys = new Set(parsed.cells.map((c) => `${c.row},${c.col}`));
+        setName(
+          typeof rawJson?.name === 'string' && rawJson.name.trim()
+            ? rawJson.name
+            : file.name.replace(/\.json$/i, '') || 'Imported Puzzle'
+        );
+
+        const keys = new Set(imported.cells.map((c) => `${c.row},${c.col}`));
         setPlayableKeys(keys);
 
-        const maxR = Math.max(3, ...parsed.cells.map((c) => c.row)) + 1;
-        const maxC = Math.max(3, ...parsed.cells.map((c) => c.col)) + 1;
+        const maxR =
+          typeof rawJson?.rows === 'number' && rawJson.rows > 0
+            ? rawJson.rows
+            : imported.cells.length > 0
+            ? Math.max(...imported.cells.map((c) => c.row)) + 1
+            : 4;
+        const maxC =
+          typeof rawJson?.cols === 'number' && rawJson.cols > 0
+            ? rawJson.cols
+            : imported.cells.length > 0
+            ? Math.max(...imported.cells.map((c) => c.col)) + 1
+            : 6;
         setRows(maxR);
         setCols(maxC);
 
-        setRegions(parsed.regions || []);
-        setDominoes(parsed.dominoes || []);
-        if (parsed.regions && parsed.regions.length > 0) {
-          setActiveRegionId(parsed.regions[0].id);
-        }
+        const constrainedRegions = imported.regions.filter((r) => r.constraint !== null);
+        setRegions(constrainedRegions);
+        setDominoes(imported.dominoes);
+        setActiveRegionId(constrainedRegions[0]?.id ?? null);
       } catch (err) {
         console.error(err);
         alert('Failed to parse puzzle JSON file.');

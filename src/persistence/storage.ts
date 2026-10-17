@@ -1,4 +1,4 @@
-import { Puzzle } from '../domain/puzzle';
+import { deserializePuzzle, Puzzle, serializePuzzle } from '../domain/puzzle';
 import { GameState } from '../game/gameState';
 
 const PUZZLE_STORAGE_KEY = 'pips_active_puzzle';
@@ -13,7 +13,7 @@ export interface SavedPuzzleBundle {
 
 export function saveActivePuzzle(puzzle: Puzzle): void {
   try {
-    localStorage.setItem(PUZZLE_STORAGE_KEY, JSON.stringify(puzzle));
+    localStorage.setItem(PUZZLE_STORAGE_KEY, JSON.stringify(serializePuzzle(puzzle)));
   } catch (err) {
     console.error('Failed to save puzzle to localStorage:', err);
   }
@@ -49,7 +49,7 @@ export function loadActiveSession(): { puzzle: Puzzle; savedState?: Partial<Game
   try {
     const rawPuzzle = localStorage.getItem(PUZZLE_STORAGE_KEY);
     if (!rawPuzzle) return null;
-    const puzzle = JSON.parse(rawPuzzle) as Puzzle;
+    const puzzle = deserializePuzzle(rawPuzzle);
 
     const rawState = localStorage.getItem(GAME_STATE_STORAGE_KEY);
     const savedState = rawState ? (JSON.parse(rawState) as Partial<GameState>) : undefined;
@@ -73,10 +73,9 @@ export function clearActiveSession(): void {
 export function saveCustomPuzzle(puzzle: Puzzle): void {
   try {
     const existingRaw = localStorage.getItem(CUSTOM_PUZZLES_KEY);
-    const list: Puzzle[] = existingRaw ? JSON.parse(existingRaw) : [];
-    const filtered = list.filter((p) => p.id !== puzzle.id);
-    filtered.push(puzzle);
-    localStorage.setItem(CUSTOM_PUZZLES_KEY, JSON.stringify(filtered));
+    const list: unknown[] = existingRaw ? JSON.parse(existingRaw) : [];
+    list.push(serializePuzzle(puzzle));
+    localStorage.setItem(CUSTOM_PUZZLES_KEY, JSON.stringify(list));
   } catch (err) {
     console.error('Failed to save custom puzzle:', err);
   }
@@ -85,9 +84,13 @@ export function saveCustomPuzzle(puzzle: Puzzle): void {
 export function loadCustomPuzzles(): Puzzle[] {
   try {
     const existingRaw = localStorage.getItem(CUSTOM_PUZZLES_KEY);
-    return existingRaw ? JSON.parse(existingRaw) : [];
+    if (!existingRaw) return [];
+    const list = JSON.parse(existingRaw);
+    if (!Array.isArray(list)) return [];
+    return list.map((item) => deserializePuzzle(item));
   } catch (err) {
     console.error('Failed to load custom puzzles:', err);
     return [];
   }
 }
+

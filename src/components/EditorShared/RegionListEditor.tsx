@@ -4,15 +4,12 @@ import { Constraint } from '../../domain/constraints';
 import { Region } from '../../domain/puzzle';
 
 export const PALETTE = [
-  '#0284c7', // Cyan
-  '#9333ea', // Purple
-  '#16a34a', // Green
-  '#ea580c', // Orange
-  '#db2777', // Pink
-  '#0d9488', // Teal
-  '#e11d48', // Rose
-  '#ca8a04', // Amber
-  '#64748b'  // Slate
+  '#a855f7', // 0: Purple
+  '#ec4899', // 1: Pink
+  '#14b8a6', // 2: Teal
+  '#f97316', // 3: Orange
+  '#0284c7', // 4: Blue
+  '#84cc16'  // 5: Lime
 ];
 
 interface RegionListEditorProps {

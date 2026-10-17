@@ -150,8 +150,9 @@ describe('Domino Rotation Anchor Rules', () => {
     );
 
     // Unselected domino should return to opacity: 0.58 and thin black stroke 0.9
-    expect(html).toContain('opacity:0.58');
+    expect(html).toContain('opacity:1');
+    expect(html).toContain('fill-opacity="0.62"');
     expect(html).toContain('stroke="#000000"');
-    expect(html).toContain('stroke-width="0.9"');
+    expect(html).toContain('stroke-width="1.1"');
   });
 });

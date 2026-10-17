@@ -27,12 +27,13 @@ export const PuzzleCell: React.FC<PuzzleCellProps> = ({
 }) => {
   const inset = 2;
   const cellWidth = size - inset * 2;
-  const rx = 6;
+  const rx = Math.max(7, size * 0.14);
 
-  let fill = regionColor ? regionColor : 'rgba(255, 255, 255, 0.04)';
-  let fillOpacity = regionColor ? 0.70 : 1;
-  let stroke = regionColor ? regionColor : 'rgba(255, 255, 255, 0.12)';
-  let strokeWidth = regionColor ? 1.5 : 1;
+  const effectiveColor = regionColor || '#dfccc4';
+  let fill = effectiveColor;
+  let fillOpacity = 0.76;
+  let stroke = effectiveColor;
+  let strokeWidth = 1.5;
 
   if (hasActiveRegion) {
     if (isSelectedRegion) {
@@ -64,6 +65,7 @@ export const PuzzleCell: React.FC<PuzzleCellProps> = ({
       onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
+      {/* Recessed inner shadow rim */}
       <rect
         x={x + inset}
         y={y + inset}
@@ -76,6 +78,21 @@ export const PuzzleCell: React.FC<PuzzleCellProps> = ({
         stroke={stroke}
         strokeWidth={strokeWidth}
       />
+      {/* Subtle inner recessed bevel to make empty cells feel like physical slots */}
+      {!isSelectedRegion && !isHighlighted && (
+        <rect
+          x={x + inset + 1.2}
+          y={y + inset + 1.2}
+          width={Math.max(0, cellWidth - 2.4)}
+          height={Math.max(0, cellWidth - 2.4)}
+          rx={Math.max(2, rx - 1)}
+          ry={Math.max(2, rx - 1)}
+          fill="none"
+          stroke="rgba(15, 23, 42, 0.08)"
+          strokeWidth={1}
+          pointerEvents="none"
+        />
+      )}
       {isSelectedRegion && (
         <rect
           x={x + inset + 2}

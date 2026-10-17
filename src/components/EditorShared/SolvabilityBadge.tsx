@@ -18,12 +18,14 @@ export const SolvabilityBadge: React.FC<SolvabilityBadgeProps> = ({ puzzle }) =>
         title: `Playable cells (${cellCount}) must equal 2 × dominoes (${domCount * 2})`
       };
     }
-    const res = solvePuzzle(puzzle, 25000);
+    const res = solvePuzzle(puzzle, 200000, 100);
     if (res.solvable) {
+      const countStr = `${res.solutionCount}${res.capped ? '+' : ''}`;
+      const plural = res.solutionCount === 1 && !res.capped ? 'solution' : 'solutions';
       return {
         kind: 'solvable' as const,
-        label: 'Solvable',
-        title: 'Verified: at least one valid mathematical solution exists'
+        label: `Solvable (${countStr} ${plural})`,
+        title: `Verified: ${countStr} valid mathematical ${plural} found`
       };
     }
     if (res.timedOut) {
@@ -35,7 +37,7 @@ export const SolvabilityBadge: React.FC<SolvabilityBadgeProps> = ({ puzzle }) =>
     }
     return {
       kind: 'unsolvable' as const,
-      label: 'No Solution',
+      label: 'No Solution (0 solutions)',
       title: 'No valid solution found with current region rules and dominoes'
     };
   }, [puzzle]);

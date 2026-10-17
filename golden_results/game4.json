@@ -1,1094 +1,332 @@
 {
-  "game": "game4.jpg",
-  "validation": {
-    "valid": true,
-    "errors": [],
-    "warnings": []
-  },
-  "counts": {
-    "cells": 32,
-    "dominoes": 16,
-    "regions": 32,
-    "badges": 32
-  },
-  "badges": [
-    {
-      "id": "badge_1",
-      "x": 328,
-      "y": 703,
-      "colorHex": "#a855f7",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_2",
-      "x": 444,
-      "y": 703,
-      "colorHex": "#ec4899",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_3",
-      "x": 559,
-      "y": 702,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "0",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 0
-      }
-    },
-    {
-      "id": "badge_4",
-      "x": 674,
-      "y": 703,
-      "colorHex": "#f97316",
-      "recognizedToken": "4",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 4
-      }
-    },
-    {
-      "id": "badge_5",
-      "x": 212,
-      "y": 818,
-      "colorHex": "#0284c7",
-      "recognizedToken": "4",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 4
-      }
-    },
-    {
-      "id": "badge_6",
-      "x": 328,
-      "y": 818,
-      "colorHex": "#84cc16",
-      "recognizedToken": "4",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 4
-      }
-    },
-    {
-      "id": "badge_7",
-      "x": 444,
-      "y": 818,
-      "colorHex": "#a855f7",
-      "recognizedToken": "2",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 2
-      }
-    },
-    {
-      "id": "badge_8",
-      "x": 559,
-      "y": 818,
-      "colorHex": "#ec4899",
-      "recognizedToken": "1",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 1
-      }
-    },
-    {
-      "id": "badge_9",
-      "x": 675,
-      "y": 818,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "0",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 0
-      }
-    },
-    {
-      "id": "badge_10",
-      "x": 790,
-      "y": 818,
-      "colorHex": "#f97316",
-      "recognizedToken": "0",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 0
-      }
-    },
-    {
-      "id": "badge_11",
-      "x": 212,
-      "y": 934,
-      "colorHex": "#84cc16",
-      "recognizedToken": "2",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 2
-      }
-    },
-    {
-      "id": "badge_12",
-      "x": 328,
-      "y": 934,
-      "colorHex": "#a855f7",
-      "recognizedToken": "0",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 0
-      }
-    },
-    {
-      "id": "badge_13",
-      "x": 443,
-      "y": 934,
-      "colorHex": "#ec4899",
-      "recognizedToken": "1",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 1
-      }
-    },
-    {
-      "id": "badge_14",
-      "x": 559,
-      "y": 934,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "1",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 1
-      }
-    },
-    {
-      "id": "badge_15",
-      "x": 675,
-      "y": 934,
-      "colorHex": "#f97316",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_16",
-      "x": 790,
-      "y": 933,
-      "colorHex": "#0284c7",
-      "recognizedToken": "2",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 2
-      }
-    },
-    {
-      "id": "badge_17",
-      "x": 212,
-      "y": 1050,
-      "colorHex": "#a855f7",
-      "recognizedToken": "5",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 5
-      }
-    },
-    {
-      "id": "badge_18",
-      "x": 328,
-      "y": 1049,
-      "colorHex": "#ec4899",
-      "recognizedToken": "5",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 5
-      }
-    },
-    {
-      "id": "badge_19",
-      "x": 443,
-      "y": 1050,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_20",
-      "x": 559,
-      "y": 1049,
-      "colorHex": "#f97316",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_21",
-      "x": 675,
-      "y": 1049,
-      "colorHex": "#0284c7",
-      "recognizedToken": "6",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 6
-      }
-    },
-    {
-      "id": "badge_22",
-      "x": 790,
-      "y": 1049,
-      "colorHex": "#84cc16",
-      "recognizedToken": "3",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 3
-      }
-    },
-    {
-      "id": "badge_23",
-      "x": 212,
-      "y": 1165,
-      "colorHex": "#ec4899",
-      "recognizedToken": "4",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 4
-      }
-    },
-    {
-      "id": "badge_24",
-      "x": 328,
-      "y": 1165,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "1",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 1
-      }
-    },
-    {
-      "id": "badge_25",
-      "x": 444,
-      "y": 1165,
-      "colorHex": "#f97316",
-      "recognizedToken": "0",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 0
-      }
-    },
-    {
-      "id": "badge_26",
-      "x": 559,
-      "y": 1165,
-      "colorHex": "#0284c7",
-      "recognizedToken": "2",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 2
-      }
-    },
-    {
-      "id": "badge_27",
-      "x": 674,
-      "y": 1165,
-      "colorHex": "#84cc16",
-      "recognizedToken": "2",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 2
-      }
-    },
-    {
-      "id": "badge_28",
-      "x": 791,
-      "y": 1165,
-      "colorHex": "#a855f7",
-      "recognizedToken": "5",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 5
-      }
-    },
-    {
-      "id": "badge_29",
-      "x": 328,
-      "y": 1280,
-      "colorHex": "#ec4899",
-      "recognizedToken": "4",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 4
-      }
-    },
-    {
-      "id": "badge_30",
-      "x": 443,
-      "y": 1280,
-      "colorHex": "#14b8a6",
-      "recognizedToken": "5",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 5
-      }
-    },
-    {
-      "id": "badge_31",
-      "x": 559,
-      "y": 1280,
-      "colorHex": "#f97316",
-      "recognizedToken": "1",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 1
-      }
-    },
-    {
-      "id": "badge_32",
-      "x": 674,
-      "y": 1280,
-      "colorHex": "#0284c7",
-      "recognizedToken": "5",
-      "parsedConstraint": {
-        "type": "sum",
-        "value": 5
-      }
-    }
+  "format": "pips-build-puzzle",
+  "version": 1,
+  "rows": 6,
+  "cols": 6,
+  "cells": [
+    "0,1",
+    "0,2",
+    "0,3",
+    "0,4",
+    "1,0",
+    "1,1",
+    "1,2",
+    "1,3",
+    "1,4",
+    "1,5",
+    "2,0",
+    "2,1",
+    "2,2",
+    "2,3",
+    "2,4",
+    "2,5",
+    "3,0",
+    "3,1",
+    "3,2",
+    "3,3",
+    "3,4",
+    "3,5",
+    "4,0",
+    "4,1",
+    "4,2",
+    "4,3",
+    "4,4",
+    "4,5",
+    "5,1",
+    "5,2",
+    "5,3",
+    "5,4"
   ],
   "regions": [
     {
-      "id": "region_1",
-      "color": "#a855f7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "0,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     },
     {
-      "id": "region_2",
-      "color": "#ec4899",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "0,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     },
     {
-      "id": "region_3",
-      "color": "#14b8a6",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "0,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 0
-      }
+      "condition": "0"
     },
     {
-      "id": "region_4",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "0,4"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 4
-      }
+      "condition": "4"
     },
     {
-      "id": "region_5",
-      "color": "#0284c7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 4,
+      "cells": [
         "1,0"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 4
-      }
+      "condition": "4"
     },
     {
-      "id": "region_6",
-      "color": "#84cc16",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 5,
+      "cells": [
         "1,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 4
-      }
+      "condition": "4"
     },
     {
-      "id": "region_7",
-      "color": "#a855f7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "1,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 2
-      }
+      "condition": "2"
     },
     {
-      "id": "region_8",
-      "color": "#ec4899",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "1,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 1
-      }
+      "condition": "1"
     },
     {
-      "id": "region_9",
-      "color": "#14b8a6",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "1,4"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 0
-      }
+      "condition": "0"
     },
     {
-      "id": "region_10",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "1,5"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 0
-      }
+      "condition": "0"
     },
     {
-      "id": "region_11",
-      "color": "#84cc16",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 5,
+      "cells": [
         "2,0"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 2
-      }
+      "condition": "2"
     },
     {
-      "id": "region_12",
-      "color": "#a855f7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "2,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 0
-      }
+      "condition": "0"
     },
     {
-      "id": "region_13",
-      "color": "#ec4899",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "2,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 1
-      }
+      "condition": "1"
     },
     {
-      "id": "region_14",
-      "color": "#14b8a6",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "2,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 1
-      }
+      "condition": "1"
     },
     {
-      "id": "region_15",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "2,4"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     },
     {
-      "id": "region_16",
-      "color": "#0284c7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 4,
+      "cells": [
         "2,5"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 2
-      }
+      "condition": "2"
     },
     {
-      "id": "region_17",
-      "color": "#a855f7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "3,0"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 5
-      }
+      "condition": "5"
     },
     {
-      "id": "region_18",
-      "color": "#ec4899",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "3,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 5
-      }
+      "condition": "5"
     },
     {
-      "id": "region_19",
-      "color": "#14b8a6",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "3,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     },
     {
-      "id": "region_20",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "3,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     },
     {
-      "id": "region_21",
-      "color": "#0284c7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 4,
+      "cells": [
         "3,4"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 6
-      }
+      "condition": "6"
     },
     {
-      "id": "region_22",
-      "color": "#84cc16",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 5,
+      "cells": [
         "3,5"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 3
-      }
+      "condition": "3"
     },
     {
-      "id": "region_23",
-      "color": "#ec4899",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "4,0"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 4
-      }
+      "condition": "4"
     },
     {
-      "id": "region_24",
-      "color": "#14b8a6",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "4,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 1
-      }
+      "condition": "1"
     },
     {
-      "id": "region_25",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "4,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 0
-      }
+      "condition": "0"
     },
     {
-      "id": "region_26",
-      "color": "#0284c7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 4,
+      "cells": [
         "4,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 2
-      }
+      "condition": "2"
     },
     {
-      "id": "region_27",
-      "color": "#84cc16",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 5,
+      "cells": [
         "4,4"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 2
-      }
+      "condition": "2"
     },
     {
-      "id": "region_28",
-      "color": "#a855f7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 0,
+      "cells": [
         "4,5"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 5
-      }
+      "condition": "5"
     },
     {
-      "id": "region_29",
-      "color": "#ec4899",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 1,
+      "cells": [
         "5,1"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 4
-      }
+      "condition": "4"
     },
     {
-      "id": "region_30",
-      "color": "#14b8a6",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 2,
+      "cells": [
         "5,2"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 5
-      }
+      "condition": "5"
     },
     {
-      "id": "region_31",
-      "color": "#f97316",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 3,
+      "cells": [
         "5,3"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 1
-      }
+      "condition": "1"
     },
     {
-      "id": "region_32",
-      "color": "#0284c7",
-      "cellCount": 1,
-      "cellIds": [
+      "color": 4,
+      "cells": [
         "5,4"
       ],
-      "constraint": {
-        "type": "sum",
-        "value": 5
-      }
+      "condition": "5"
     }
   ],
   "dominoes": [
-    {
-      "id": "d_1",
-      "a": 0,
-      "b": 1,
-      "values": [
-        0,
-        1
-      ]
-    },
-    {
-      "id": "d_2",
-      "a": 0,
-      "b": 2,
-      "values": [
-        0,
-        2
-      ]
-    },
-    {
-      "id": "d_3",
-      "a": 0,
-      "b": 3,
-      "values": [
-        0,
-        3
-      ]
-    },
-    {
-      "id": "d_4",
-      "a": 0,
-      "b": 4,
-      "values": [
-        0,
-        4
-      ]
-    },
-    {
-      "id": "d_5",
-      "a": 0,
-      "b": 5,
-      "values": [
-        0,
-        5
-      ]
-    },
-    {
-      "id": "d_6",
-      "a": 1,
-      "b": 2,
-      "values": [
-        1,
-        2
-      ]
-    },
-    {
-      "id": "d_7",
-      "a": 1,
-      "b": 3,
-      "values": [
-        1,
-        3
-      ]
-    },
-    {
-      "id": "d_8",
-      "a": 1,
-      "b": 4,
-      "values": [
-        1,
-        4
-      ]
-    },
-    {
-      "id": "d_9",
-      "a": 1,
-      "b": 5,
-      "values": [
-        1,
-        5
-      ]
-    },
-    {
-      "id": "d_10",
-      "a": 2,
-      "b": 3,
-      "values": [
-        2,
-        3
-      ]
-    },
-    {
-      "id": "d_11",
-      "a": 2,
-      "b": 4,
-      "values": [
-        2,
-        4
-      ]
-    },
-    {
-      "id": "d_12",
-      "a": 2,
-      "b": 5,
-      "values": [
-        2,
-        5
-      ]
-    },
-    {
-      "id": "d_13",
-      "a": 3,
-      "b": 4,
-      "values": [
-        3,
-        4
-      ]
-    },
-    {
-      "id": "d_14",
-      "a": 3,
-      "b": 5,
-      "values": [
-        3,
-        5
-      ]
-    },
-    {
-      "id": "d_15",
-      "a": 4,
-      "b": 5,
-      "values": [
-        4,
-        5
-      ]
-    },
-    {
-      "id": "d_16",
-      "a": 3,
-      "b": 6,
-      "values": [
-        3,
-        6
-      ]
-    }
-  ],
-  "cells": [
-    {
-      "id": "0,1",
-      "row": 0,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "0,2",
-      "row": 0,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "0,3",
-      "row": 0,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "0,4",
-      "row": 0,
-      "col": 4,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,0",
-      "row": 1,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,1",
-      "row": 1,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,2",
-      "row": 1,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,3",
-      "row": 1,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,4",
-      "row": 1,
-      "col": 4,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "1,5",
-      "row": 1,
-      "col": 5,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,0",
-      "row": 2,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,1",
-      "row": 2,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,2",
-      "row": 2,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,3",
-      "row": 2,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,4",
-      "row": 2,
-      "col": 4,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "2,5",
-      "row": 2,
-      "col": 5,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,0",
-      "row": 3,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,1",
-      "row": 3,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,2",
-      "row": 3,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,3",
-      "row": 3,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,4",
-      "row": 3,
-      "col": 4,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "3,5",
-      "row": 3,
-      "col": 5,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,0",
-      "row": 4,
-      "col": 0,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,1",
-      "row": 4,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,2",
-      "row": 4,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,3",
-      "row": 4,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,4",
-      "row": 4,
-      "col": 4,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "4,5",
-      "row": 4,
-      "col": 5,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "5,1",
-      "row": 5,
-      "col": 1,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "5,2",
-      "row": 5,
-      "col": 2,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "5,3",
-      "row": 5,
-      "col": 3,
-      "componentId": "comp_1"
-    },
-    {
-      "id": "5,4",
-      "row": 5,
-      "col": 4,
-      "componentId": "comp_1"
-    }
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      3,
+      6
+    ]
   ]
 }

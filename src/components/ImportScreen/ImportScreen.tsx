@@ -4,7 +4,7 @@ import {
   Edit3,
   AlertCircle
 } from 'lucide-react';
-import { Puzzle } from '../../domain/puzzle';
+import { deserializePuzzle, Puzzle } from '../../domain/puzzle';
 import { importPuzzleFromImage, ImportProgressUpdate } from '../../importer/importPuzzle';
 
 interface ImportScreenProps {
@@ -47,7 +47,23 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
 
   const currentSessionIdRef = React.useRef<string>('');
 
+  const handleProcessJsonFile = async (file: File) => {
+    setErrorMessage(null);
+    try {
+      const text = await file.text();
+      const puzzle = deserializePuzzle(text);
+      onPuzzleReady(puzzle, '');
+    } catch (err) {
+      console.error(err);
+      setErrorMessage('Failed to parse puzzle JSON file. Please check the file format.');
+    }
+  };
+
   const handleProcessImageFile = async (file: File) => {
+    if (file.name.toLowerCase().endsWith('.json') || file.type === 'application/json') {
+      await handleProcessJsonFile(file);
+      return;
+    }
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     currentSessionIdRef.current = sessionId;
     setErrorMessage(null);
@@ -89,7 +105,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
     e.preventDefault();
     setIsDraggingFile(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && (file.type.startsWith('image/') || file.type === 'application/json' || file.name.toLowerCase().endsWith('.json'))) {
       handleProcessImageFile(file);
     }
   };
@@ -259,7 +275,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
             <input
               id="screenshot-upload-input"
               type="file"
-              accept="image/png, image/jpeg, image/webp"
+              accept="image/png, image/jpeg, image/webp, .json, application/json"
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />

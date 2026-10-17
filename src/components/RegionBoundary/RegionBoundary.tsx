@@ -25,6 +25,7 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
   }
 
   const cellSet = new Set(region.cellIds);
+  const inset = Math.max(3, Math.round(cellSize * 0.05));
 
   interface Segment {
     x1: number;
@@ -40,21 +41,38 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
     const x = padding + (col - minCol) * cellSize;
     const y = padding + (row - minRow) * cellSize;
 
+    const hasTop = cellSet.has(`${row - 1},${col}`);
+    const hasBottom = cellSet.has(`${row + 1},${col}`);
+    const hasLeft = cellSet.has(`${row},${col - 1}`);
+    const hasRight = cellSet.has(`${row},${col + 1}`);
+    const hasTopLeft = cellSet.has(`${row - 1},${col - 1}`);
+    const hasTopRight = cellSet.has(`${row - 1},${col + 1}`);
+    const hasBottomLeft = cellSet.has(`${row + 1},${col - 1}`);
+    const hasBottomRight = cellSet.has(`${row + 1},${col + 1}`);
+
     // Top edge
-    if (!cellSet.has(`${row - 1},${col}`)) {
-      segments.push({ x1: x, y1: y, x2: x + cellSize, y2: y });
+    if (!hasTop) {
+      const x1 = !hasLeft ? x + inset : hasTopLeft ? x - inset : x;
+      const x2 = !hasRight ? x + cellSize - inset : hasTopRight ? x + cellSize + inset : x + cellSize;
+      segments.push({ x1, y1: y + inset, x2, y2: y + inset });
     }
     // Bottom edge
-    if (!cellSet.has(`${row + 1},${col}`)) {
-      segments.push({ x1: x, y1: y + cellSize, x2: x + cellSize, y2: y + cellSize });
+    if (!hasBottom) {
+      const x1 = !hasLeft ? x + inset : hasBottomLeft ? x - inset : x;
+      const x2 = !hasRight ? x + cellSize - inset : hasBottomRight ? x + cellSize + inset : x + cellSize;
+      segments.push({ x1, y1: y + cellSize - inset, x2, y2: y + cellSize - inset });
     }
     // Left edge
-    if (!cellSet.has(`${row},${col - 1}`)) {
-      segments.push({ x1: x, y1: y, x2: x, y2: y + cellSize });
+    if (!hasLeft) {
+      const y1 = !hasTop ? y + inset : hasTopLeft ? y - inset : y;
+      const y2 = !hasBottom ? y + cellSize - inset : hasBottomLeft ? y + cellSize + inset : y + cellSize;
+      segments.push({ x1: x + inset, y1, x2: x + inset, y2 });
     }
     // Right edge
-    if (!cellSet.has(`${row},${col + 1}`)) {
-      segments.push({ x1: x + cellSize, y1: y, x2: x + cellSize, y2: y + cellSize });
+    if (!hasRight) {
+      const y1 = !hasTop ? y + inset : hasTopRight ? y - inset : y;
+      const y2 = !hasBottom ? y + cellSize - inset : hasBottomRight ? y + cellSize + inset : y + cellSize;
+      segments.push({ x1: x + cellSize - inset, y1, x2: x + cellSize - inset, y2 });
     }
   }
 
@@ -71,6 +89,7 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
             stroke="#ffffff"
             strokeWidth={6}
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
         ))}
       {segments.map((seg, idx) => (
@@ -81,9 +100,10 @@ export const RegionBoundary: React.FC<RegionBoundaryProps> = ({
           x2={seg.x2}
           y2={seg.y2}
           stroke={isSelected ? '#0f172a' : region.color}
-          strokeWidth={isSelected ? 4 : 3}
-          strokeDasharray={isSelected ? '6 3' : '6 4'}
+          strokeWidth={isSelected ? 3.5 : 2.5}
+          strokeDasharray={isSelected ? '6 3' : '5 4'}
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
       ))}
     </g>
