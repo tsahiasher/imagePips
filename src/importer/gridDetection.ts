@@ -52,25 +52,31 @@ export function estimateGrid(
 
       let playableCount = 0;
 
-      // Check interior of each candidate cell in this grid
+      // Check interior of each candidate cell in this grid matching cellDetection logic
+      const off = Math.max(2, Math.round(Math.min(cellW, cellH) * 0.08));
+      const sampleOffsets = [
+        [0, 0],
+        [-off, -off],
+        [off, -off],
+        [-off, off],
+        [off, off],
+        [-off, 0],
+        [off, 0],
+        [0, -off],
+        [0, off]
+      ];
+
       for (let rowIdx = 0; rowIdx < r; rowIdx++) {
         for (let colIdx = 0; colIdx < c; colIdx++) {
-          const cx = Math.floor(boardBox.x + (colIdx + 0.5) * cellW);
-          const cy = Math.floor(boardBox.y + (rowIdx + 0.5) * cellH);
+          const cellLeft = Math.round(boardBox.x + colIdx * cellW);
+          const cellTop = Math.round(boardBox.y + rowIdx * cellH);
+          const cx = Math.round(cellLeft + cellW * 0.40);
+          const cy = Math.round(cellTop + cellH * 0.40);
 
           if (cx < 0 || cx >= imgW || cy < 0 || cy >= imgH) continue;
 
-          // Sample 5 points near the center to avoid border noise
           const samples: Array<{ r: number; g: number; b: number }> = [];
-          const offsets = [
-            [0, 0],
-            [-4, -4],
-            [4, -4],
-            [-4, 4],
-            [4, 4]
-          ];
-
-          for (const [ox, oy] of offsets) {
+          for (const [ox, oy] of sampleOffsets) {
             const sx = cx + ox;
             const sy = cy + oy;
             if (sx >= 0 && sx < imgW && sy >= 0 && sy < imgH) {
@@ -90,7 +96,7 @@ export function estimateGrid(
           const minVal = Math.min(avgR, avgG, avgB);
           const brightness = (avgR + avgG + avgB) / 3;
           const saturation = maxVal > 0 ? (maxVal - minVal) / maxVal : 0;
-          const isWhiteBackground = brightness > 245 && saturation < 0.05;
+          const isWhiteBackground = brightness > 246 && saturation < 0.04;
           if (!isWhiteBackground) {
             playableCount++;
           }

@@ -15,6 +15,7 @@ const GAMES = [
   'game9.jpg',
   'game10.jpg',
   'game11.jpg',
+  'game12.jpg',
 ];
 
 function serializeGoldenSnapshot(
@@ -65,10 +66,10 @@ function serializeGoldenSnapshot(
   };
 }
 
-describe('Saved Golden JSON Regression Suite (game1.jpg - game11.jpg)', () => {
+describe('Saved Golden JSON Regression Suite (game1.jpg - game12.jpg)', () => {
   const outDir = path.resolve(process.cwd(), 'golden_results');
 
-  it('matches the saved per-game golden JSON output for all games 1 to 11', async () => {
+  it('matches the saved per-game golden JSON output for all games 1 to 12', async () => {
     for (const gameFile of GAMES) {
       const baseName = path.basename(gameFile, path.extname(gameFile));
       const imagePath = path.resolve(process.cwd(), gameFile);

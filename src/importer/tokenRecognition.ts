@@ -287,8 +287,8 @@ export function recognizeBadgeToken(
     }
 
     if (
-      topBarSpan >= glyphW * 0.62 &&
-      botBarSpan >= glyphW * 0.62 &&
+      topBarSpan >= glyphW * 0.58 &&
+      botBarSpan >= glyphW * 0.58 &&
       gapRowPixels >= 1 &&
       gapRowPixels <= Math.max(5, Math.round(glyphW * 0.38)) &&
       slashTopExtends &&

@@ -6,7 +6,7 @@ async function saveAllGoldens() {
   const games = [
     'game1.jpg', 'game2.jpg', 'game3.jpg', 'game4.jpg',
     'game5.jpg', 'game6.jpg', 'game7.jpg', 'game8.jpg',
-    'game9.jpg', 'game10.jpg', 'game11.jpg'
+    'game9.jpg', 'game10.jpg', 'game11.jpg', 'game12.jpg'
   ];
 
   const outDir = path.resolve(process.cwd(), 'golden_results');

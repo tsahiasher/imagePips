@@ -1,5 +1,37 @@
 # Progress Log
 
+**2026-10-17 — Game 12: 9x9 "OFF" grid detection alignment, unequal '≠' recognition, golden snapshot, and regression test. ✅ DONE**
+- Resolved puzzle geometry distortion on `game12.jpg` where the right and bottom sections misaligned into 34 cells instead of 28 cells, and condition badge 6 was misidentified as `5` instead of `≠`.
+- Root causes & fixes:
+  1. **Candidate grid scoring alignment in `gridDetection.ts`**:
+     - `game12.jpg` forms a 9x9 grid spelling the letters "OFF" (12 cells in 'O', 8 in top 'F', 8 in bottom 'F' = 28 cells, 14 dominoes).
+     - `estimateGrid` previously used a simplified 5-point center sampling (`0.50` offset) which accidentally counted 28 playable cells on an `8x8` grid as well as `9x9`. Since `8x8` was evaluated first, it won the tie, causing `detectGridCells` to misalign and produce 34 corrupted cells.
+     - Aligned `estimateGrid`'s candidate cell sampling directly with `cellDetection.ts` (9-point core sampling at `0.40` upper-left offset, scaled `0.08` delta, matching brightness/saturation thresholds). On `8x8`, `estimateGrid` now accurately counts 34 cells (diff 6, heavily penalized), while `9x9` counts exactly 28 cells (diff 0, bonus awarded), cleanly selecting `9x9`.
+  2. **Unequal badge '≠' recognition threshold in `tokenRecognition.ts`**:
+     - The bar span ratio threshold for `≠` was relaxed from 0.62 to 0.58 to accommodate fonts with wide diagonal slashes (15px bars on a 25px wide glyph = 60%), cleanly identifying badge 6 as `≠`.
+  3. **Debug UI & Golden Snapshot**:
+     - Added `game12` button to debug options in `src/components/ImportScreen/ImportScreen.tsx`.
+     - Copied `game11.jpg` and `game12.jpg` to `public/` for browser fetch availability.
+     - Generated `golden_results/game12.json` and added `game12.jpg` to `scripts/save_game_goldens.ts` and `src/importer/__tests__/savedGoldensJson.test.ts`.
+     - Added formal golden regression test in `src/importer/__tests__/game12Regression.test.ts`.
+- Files touched:
+  - `src/importer/gridDetection.ts`
+  - `src/importer/tokenRecognition.ts`
+  - `src/components/ImportScreen/ImportScreen.tsx`
+  - `scripts/save_game_goldens.ts`
+  - `src/importer/__tests__/savedGoldensJson.test.ts`
+  - `src/importer/__tests__/game12Regression.test.ts`
+  - `golden_results/game12.json`
+  - `public/game11.jpg`
+  - `public/game12.jpg`
+  - `game12.jpg`
+  - `docs/DECISIONS.md`
+  - `docs/PROGRESS.md`
+- Proof:
+  - All 19 test suites (69 tests) passing (`npm test`).
+  - `savedGoldensJson.test.ts` verifies games 1 to 12 match saved goldens 100%.
+  - Production build passing (`npm run build`).
+
 **2026-10-16 — Edit Mode Refinement: Select Region mode, hole selection prevention, and active region spotlighting. ✅ DONE**
 - Implemented dedicated three-mode editing workflow (`Select Region`, `Assign Regions`, `Toggle Cells/Holes`) across `VerificationScreen` and `ManualEditor`.
 - Guarded `Assign Regions` mode so that clicks on holes (unplayable slots) are strictly rejected and cannot be selected or assigned to regions.

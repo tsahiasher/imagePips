@@ -295,7 +295,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
           }
         })() && (
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '10px' }}>
-            {['game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7', 'game8', 'game9', 'game10', 'game11'].map((g) => (
+            {['game1', 'game2', 'game3', 'game4', 'game5', 'game6', 'game7', 'game8', 'game9', 'game10', 'game11', 'game12'].map((g) => (
               <button
                 key={g}
                 id={`test-${g}-btn`}
