@@ -1,5 +1,28 @@
 # Progress Log
 
+**2026-10-19 — Game 13: Fix 3-character `>11` condition badge recognition, add golden snapshot and regression suite (offline, code + tests + docs). ✅ DONE**
+- Resolved `game13.jpg` condition badge recognition where the orange `>11` badge (`badge_5`) was misclassified as `20` and subsequently auto-repaired by the solver fallback to `>10`.
+- Root causes & fixes in `src/importer/tokenRecognition.ts` (see Decision 18 in `docs/DECISIONS.md`):
+  1. **Chevron `>` detection (`isChevronRight`)**: In `>11` (`62x63` orange badge), the `6x6` `>` glyph had its top-left pixel at `leftMinX` (`-14`) and its bottom-left pixel at `leftMinX + 2` (`-12`), causing single-column `x25 = -13` to report `span25 = 1 < span75 = 3`. Added `maxLeftSpan` across the left 40% of `leftW` along with `topRightPixels === 0` and `botRowOuterRight === 0` so compact 3-character `>` chevrons are reliably recognized without matching digit `'2'`.
+  2. **Even-width serifed `'1'` detection (`classifySingleDigit`)**: Each `'1'` in `>11` has a `6x10` bounding box (`glyphW / glyphH = 0.60 >= 0.58`) due to its 6px-wide bottom serif bar, with its 2px central vertical stem straddling `(cX, cX + 1)` (`x = 2, 3`). Extended the serifed `'1'` branch to check `Math.min(stemBrokenRows, stemBrokenRight) === 0` with empty left margin (`midLeftMarginPixels === 0`), empty right edge above the bottom serif (`upperAndMidRightEdgePixels === 0`), and narrow middle shaft (`maxMidShaftRowPixels <= Math.ceil(glyphW * 0.50)`).
+- Files touched:
+  - `src/importer/tokenRecognition.ts`
+  - `src/importer/__tests__/game13Regression.test.ts` (new)
+  - `src/importer/__tests__/savedGoldensJson.test.ts`
+  - `src/domain/__tests__/puzzleSerialization.test.ts`
+  - `src/game/__tests__/solver.test.ts`
+  - `src/components/ImportScreen/ImportScreen.tsx`
+  - `scripts/save_game_goldens.ts`
+  - `golden_results/game13.json` (new)
+  - `game13.jpg` (new)
+  - `public/game13.jpg` (new)
+  - `docs/DECISIONS.md` (Decision 18)
+  - `docs/PROGRESS.md` (this entry)
+- Proof:
+  - All 21 Vitest test suites (78 tests) passing (`npx vitest run`), with zero changes to `golden_results/game1.json`–`game12.json`.
+  - Real Google Chrome browser verification via CDP (`chrome.exe --headless=new`) confirmed all games through `game13` reconstruct accurately with `>11` recognized and `Solvable (1 solution)`.
+  - Production build passing (`npm run build`).
+
 **2026-10-17 — Mobile tray compaction and puzzle board real-estate expansion. ✅ DONE**
 - Freed vertical and horizontal viewport real estate on mobile screens so the puzzle board and condition badges render larger without shrinking tray domino tile sizes (`trayCellSize` preserved at `34 / 38 / 42`):
   1. **Tray Bottom Padding & Condensed Domino Lines (`DominoTray.tsx`)**:

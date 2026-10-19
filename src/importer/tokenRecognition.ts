@@ -418,13 +418,39 @@ export function recognizeBadgeToken(
     }
   }
 
+  let maxLeftSpan = span25;
+  for (let x = leftMinX; x <= leftMinX + Math.floor(leftW * 0.40); x++) {
+    let t = Infinity, b = -Infinity;
+    for (let y = leftMinY; y <= leftMaxY; y++) {
+      if (ptsSet.has(`${x},${y}`)) {
+        if (y < t) t = y;
+        if (y > b) b = y;
+      }
+    }
+    if (b >= t && b - t + 1 > maxLeftSpan) {
+      maxLeftSpan = b - t + 1;
+    }
+  }
+
+  let topRightPixels = 0;
+  for (let y = leftMinY; y <= leftMinY + 1; y++) {
+    for (let x = leftMinX + Math.floor(leftW * 0.5); x <= leftMaxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) topRightPixels++;
+    }
+  }
+  let botRowOuterRight = 0;
+  for (let x = leftMinX + Math.floor(leftW * 0.68); x <= leftMaxX; x++) {
+    if (ptsSet.has(`${x},${leftMaxY}`)) botRowOuterRight++;
+  }
+
   const isChevronLeft = midLeftPixels >= 1 && midLeftPixels > midRightPixels && midRightPixels <= 2 && span75 >= span25;
   const isChevronRight =
     midRightPixels >= 1 &&
     midRightPixels > midLeftPixels &&
     midLeftPixels <= 2 &&
-    span25 >= span75 &&
-    (botRightPixels <= 1 || (botRightOuterPixels === 0 && span25 > span75));
+    ((span25 >= span75 &&
+      (botRightPixels <= 1 || (botRightOuterPixels === 0 && span25 > span75))) ||
+      (maxLeftSpan > span75 && topRightPixels === 0 && botRowOuterRight === 0));
 
   let leftChar = '';
   // 1. Chevron '<'
@@ -709,9 +735,13 @@ function classifySingleDigit(
   if (glyphW / glyphH < 0.64 && botP >= glyphW * 0.75) {
     const cX = Math.floor((minX + maxX) / 2);
     let stemBrokenRows = 0;
+    let stemBrokenRight = 0;
     for (let y = minY + Math.floor(glyphH * 0.15); y <= maxY - 2; y++) {
       if (!ptsSet.has(`${cX},${y}`) || !ptsSet.has(`${cX - 1},${y}`)) {
         stemBrokenRows++;
+      }
+      if (!ptsSet.has(`${cX},${y}`) || !ptsSet.has(`${cX + 1},${y}`)) {
+        stemBrokenRight++;
       }
     }
     const yBeak1 = minY + Math.floor(glyphH * 0.15);
@@ -732,21 +762,35 @@ function classifySingleDigit(
     const xRightMargin = maxX - Math.max(2, Math.floor(glyphW * 0.22));
     let midLeftMarginPixels = 0;
     let upperAndMidRightPixels = 0;
+    let upperAndMidRightEdgePixels = 0;
+    let maxMidShaftRowPixels = 0;
     for (let y = minY; y <= yMidStem2; y++) {
       if (y >= yMidStem1) {
         for (let x = minX; x <= xLeftMargin; x++) {
           if (ptsSet.has(`${x},${y}`)) midLeftMarginPixels++;
         }
+        let rowCount = 0;
+        for (let x = minX; x <= maxX; x++) {
+          if (ptsSet.has(`${x},${y}`)) rowCount++;
+        }
+        if (rowCount > maxMidShaftRowPixels) maxMidShaftRowPixels = rowCount;
       }
       for (let x = xRightMargin; x <= maxX; x++) {
         if (ptsSet.has(`${x},${y}`)) upperAndMidRightPixels++;
       }
+      if (ptsSet.has(`${maxX},${y}`)) {
+        upperAndMidRightEdgePixels++;
+      }
     }
     if (
-      stemBrokenRows === 0 &&
-      beakLeft > beakRight * 1.3 &&
-      midLeftMarginPixels === 0 &&
-      upperAndMidRightPixels === 0
+      (stemBrokenRows === 0 &&
+        beakLeft > beakRight * 1.3 &&
+        midLeftMarginPixels === 0 &&
+        upperAndMidRightPixels === 0) ||
+      (Math.min(stemBrokenRows, stemBrokenRight) === 0 &&
+        midLeftMarginPixels === 0 &&
+        upperAndMidRightEdgePixels === 0 &&
+        maxMidShaftRowPixels <= Math.ceil(glyphW * 0.50))
     ) {
       return '1';
     }
