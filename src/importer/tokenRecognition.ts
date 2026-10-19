@@ -470,7 +470,9 @@ export function recognizeBadgeToken(
     leftChar = '2';
   }
   // 4. Digit '1' (in '10'..'19'): narrow vertical stroke or solid vertical column (leftMaxCol / leftH > 0.82, span75 <= 0.35*H)
-  else {
+  else if (rightW / rightH >= 1.45 && botRowOuterRight === 0) {
+    leftChar = '>';
+  } else {
     leftChar = '1';
   }
 
@@ -651,8 +653,13 @@ export function recognizeBadgeToken(
   if (rightTopP >= rightW * 0.65 && rightBotP <= rightW * 0.50) {
     rightChar = '7';
   }
-  // 2. '1' (in '11', '<1', '>1'): narrow width, solid column
-  else if (rightW / rightH < 0.60 && rightMaxCol >= rightH * 0.65) {
+  // 2. '1' (in '11', '<1', '>1'): narrow width, solid column, or serifed '1' topology
+  else if (
+    (rightW / rightH < 0.60 && rightMaxCol >= rightH * 0.65) ||
+    (rightW / rightH < 0.72 &&
+      rightMaxCol >= rightH * 0.75 &&
+      classifySingleDigit(ptsSet, rightMinX, rightMaxX, rightMinY, rightMaxY) === '1')
+  ) {
     rightChar = '1';
   }
   // 3. '4' (in '<4', '>4', '24', '14'): horizontal crossbar, empty lower-left below crossbar
@@ -732,7 +739,7 @@ function classifySingleDigit(
     if (ptsSet.has(`${x},${maxY}`) || ptsSet.has(`${x},${maxY - 1}`)) botP++;
   }
 
-  if (glyphW / glyphH < 0.64 && botP >= glyphW * 0.75) {
+  if (glyphW / glyphH < 0.72 && botP >= glyphW * 0.75) {
     const cX = Math.floor((minX + maxX) / 2);
     let stemBrokenRows = 0;
     let stemBrokenRight = 0;
@@ -790,7 +797,7 @@ function classifySingleDigit(
       (Math.min(stemBrokenRows, stemBrokenRight) === 0 &&
         midLeftMarginPixels === 0 &&
         upperAndMidRightEdgePixels === 0 &&
-        maxMidShaftRowPixels <= Math.ceil(glyphW * 0.50))
+        maxMidShaftRowPixels <= Math.ceil(glyphW * 0.55))
     ) {
       return '1';
     }

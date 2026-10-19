@@ -1,12 +1,13 @@
 # Progress Log
 
-**2026-10-19 — Game 13: Fix 3-character `>11` condition badge recognition, add golden snapshot and regression suite (offline, code + tests + docs). ✅ DONE**
-- Resolved `game13.jpg` condition badge recognition where the orange `>11` badge (`badge_5`) was misclassified as `20` and subsequently auto-repaired by the solver fallback to `>10`.
-- Root causes & fixes in `src/importer/tokenRecognition.ts` (see Decision 18 in `docs/DECISIONS.md`):
-  1. **Chevron `>` detection (`isChevronRight`)**: In `>11` (`62x63` orange badge), the `6x6` `>` glyph had its top-left pixel at `leftMinX` (`-14`) and its bottom-left pixel at `leftMinX + 2` (`-12`), causing single-column `x25 = -13` to report `span25 = 1 < span75 = 3`. Added `maxLeftSpan` across the left 40% of `leftW` along with `topRightPixels === 0` and `botRowOuterRight === 0` so compact 3-character `>` chevrons are reliably recognized without matching digit `'2'`.
-  2. **Even-width serifed `'1'` detection (`classifySingleDigit`)**: Each `'1'` in `>11` has a `6x10` bounding box (`glyphW / glyphH = 0.60 >= 0.58`) due to its 6px-wide bottom serif bar, with its 2px central vertical stem straddling `(cX, cX + 1)` (`x = 2, 3`). Extended the serifed `'1'` branch to check `Math.min(stemBrokenRows, stemBrokenRight) === 0` with empty left margin (`midLeftMarginPixels === 0`), empty right edge above the bottom serif (`upperAndMidRightEdgePixels === 0`), and narrow middle shaft (`maxMidShaftRowPixels <= Math.ceil(glyphW * 0.50)`).
+**2026-10-19 — Game 13: Fix `>11` and mobile `>1` (vs `>5`) condition badge recognition, add golden snapshot and regression suite (offline, code + tests + docs). ✅ DONE**
+- Resolved `game13` condition badge recognition issues for both the orange `>11` badge (`badge_5`) and the green `>1` badge (`badge_6`) on mobile screenshots:
+  1. **Chevron `>` detection (`isChevronRight`)**: In `>11` (`62x63` orange badge), the `6x6` `>` glyph had its top-left pixel at `leftMinX` (`-14`) and its bottom-left pixel at `leftMinX + 2` (`-12`), causing single-column `x25 = -13` to report `span25 = 1 < span75 = 3`. Added `maxLeftSpan` across the left 40% of `leftW` along with `topRightPixels === 0` and `botRowOuterRight === 0` (plus `rightW / rightH >= 1.45 && botRowOuterRight === 0` recovery for 3-character tokens) so compact `>` chevrons are reliably recognized.
+  2. **Serifed `'1'` detection in both 1/3-character (`classifySingleDigit`) and 2-character (`recognizeBadgeToken`) tokens**: In NYT Pips on the mobile site, the digit `'1'` in `>1` (`badge_6`, green `#84cc16`) has a wide horizontal bottom serif (`10–11`px wide vs `16–17`px tall, giving `rightW / rightH = 0.61–0.68 >= 0.60`), whereas the WhatsApp-downscaled `game13.jpg` had 4:2:0 JPEG chroma bleed that clipped 2px off `rightW` and added 2px of vertical bleed to `rightH` (`9 / 19 = 0.474`). Because the 2-character `rightChar` classifier in `recognizeBadgeToken` previously required `rightW / rightH < 0.60`, any `'1'` with `rightW / rightH >= 0.60` skipped the `'1'` branch and fell into the `'5'` branch (`upLeft > upRight` due to `'1'`'s upper-left beak and `maxCrossSpan < 0.55 * rightW`), producing `>5`. Delegated 2-character `rightChar` with `rightW / rightH < 0.72 && rightMaxCol >= rightH * 0.75` to `classifySingleDigit(...) === '1'` and extended `classifySingleDigit`'s serifed `'1'` check up to `glyphW / glyphH < 0.72`.
+  3. **Two-pass operator-preserving solver auto-repair (`importPuzzle.ts`)**: Added `1 <-> 5` to `digitSwaps` and updated `tryAutoRepairUnsolvablePuzzle` to test same-operator digit swaps across all regions before testing operator-flip fallbacks (`<` <-> `>`).
 - Files touched:
   - `src/importer/tokenRecognition.ts`
+  - `src/importer/importPuzzle.ts`
   - `src/importer/__tests__/game13Regression.test.ts` (new)
   - `src/importer/__tests__/savedGoldensJson.test.ts`
   - `src/domain/__tests__/puzzleSerialization.test.ts`
@@ -19,8 +20,8 @@
   - `docs/DECISIONS.md` (Decision 18)
   - `docs/PROGRESS.md` (this entry)
 - Proof:
-  - All 21 Vitest test suites (78 tests) passing (`npx vitest run`), with zero changes to `golden_results/game1.json`–`game12.json`.
-  - Real Google Chrome browser verification via CDP (`chrome.exe --headless=new`) confirmed all games through `game13` reconstruct accurately with `>11` recognized and `Solvable (1 solution)`.
+  - All 21 Vitest test suites (79 tests) passing (`npx vitest run`), with zero changes to `golden_results/game1.json`–`game12.json`.
+  - Real Google Chrome browser verification via CDP (`chrome.exe --headless=new`) confirmed all games through `game13` reconstruct accurately with `>11` and `>1` recognized and `Solvable (1 solution)`.
   - Production build passing (`npm run build`).
 
 **2026-10-17 — Mobile tray compaction and puzzle board real-estate expansion. ✅ DONE**

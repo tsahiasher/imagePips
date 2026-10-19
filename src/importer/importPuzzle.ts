@@ -55,11 +55,11 @@ function getPlausibleConstraintAlternatives(
   const val = constraint.value;
   const digitSwaps: Record<number, number[]> = {
     0: [8, 6],
-    1: [7, 4],
+    1: [7, 4, 5],
     2: [1],
     3: [5, 8],
     4: [6, 1],
-    5: [6, 3, 8],
+    5: [6, 3, 8, 1],
     6: [8, 4, 5, 0],
     7: [1],
     8: [6, 5, 9, 3, 0],
@@ -113,6 +113,7 @@ function getPlausibleConstraintAlternatives(
 /**
  * If an imported puzzle has valid cell/domino counts but 0 valid solutions,
  * attempts single-badge OCR confusion repairs ordered by lowest badge confidence.
+ * Prioritizes digit confusions that preserve the operator before testing operator flips.
  */
 function tryAutoRepairUnsolvablePuzzle(
   puzzle: Puzzle,
@@ -136,27 +137,32 @@ function tryAutoRepairUnsolvablePuzzle(
     .slice()
     .sort((a, b) => (confidenceByRegion.get(a.id) ?? 0.5) - (confidenceByRegion.get(b.id) ?? 0.5));
 
-  for (const targetRegion of constrainedRegions) {
-    if (!targetRegion.constraint) continue;
-    const alts = getPlausibleConstraintAlternatives(
-      targetRegion.constraint,
-      targetRegion.cellIds.length
-    );
+  for (const allowOperatorFlip of [false, true]) {
+    for (const targetRegion of constrainedRegions) {
+      const orig = targetRegion.constraint;
+      if (!orig) continue;
+      const alts = getPlausibleConstraintAlternatives(orig, targetRegion.cellIds.length);
 
-    for (const alt of alts) {
-      const candidateRegions = puzzle.regions.map((r) =>
-        r.id === targetRegion.id ? { ...r, constraint: alt } : r
-      );
-      const candidatePuzzle: Puzzle = {
-        ...puzzle,
-        regions: candidateRegions
-      };
-      const check = solvePuzzle(candidatePuzzle, 15000);
-      if (check.solvable) {
-        return {
-          repairedPuzzle: candidatePuzzle,
-          repairNote: `Auto-repaired region ${targetRegion.id} constraint to ${JSON.stringify(alt)} via solver verification.`
+      for (const alt of alts) {
+        const isPrimaryDigitConfusion =
+          alt.type === orig.type ||
+          (orig.type === 'sum' && orig.value >= 20 && alt.type === 'greaterThan');
+        if (isPrimaryDigitConfusion === allowOperatorFlip) continue;
+
+        const candidateRegions = puzzle.regions.map((r) =>
+          r.id === targetRegion.id ? { ...r, constraint: alt } : r
+        );
+        const candidatePuzzle: Puzzle = {
+          ...puzzle,
+          regions: candidateRegions
         };
+        const check = solvePuzzle(candidatePuzzle, 15000);
+        if (check.solvable) {
+          return {
+            repairedPuzzle: candidatePuzzle,
+            repairNote: `Auto-repaired region ${targetRegion.id} constraint to ${JSON.stringify(alt)} via solver verification.`
+          };
+        }
       }
     }
   }
