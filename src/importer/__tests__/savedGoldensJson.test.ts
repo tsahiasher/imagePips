@@ -26,7 +26,7 @@ describe('Saved Golden JSON Regression Suite (game1.jpg - game13.jpg)', () => {
   it('matches the saved per-game pips-build-puzzle v1 golden JSON output for all games 1 to 13', async () => {
     for (const gameFile of GAMES) {
       const baseName = path.basename(gameFile, path.extname(gameFile));
-      const imagePath = path.resolve(process.cwd(), gameFile);
+      const imagePath = path.resolve(process.cwd(), 'samples', gameFile);
       const singleJsonPath = path.join(outDir, `${baseName}.json`);
 
       expect(fs.existsSync(singleJsonPath)).toBe(true);

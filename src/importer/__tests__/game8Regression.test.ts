@@ -4,7 +4,7 @@ import { importPuzzleFromImage } from '../importPuzzle';
 
 describe('Golden Regression Case: game8.jpg (PC Browser Screen Capture of game7)', () => {
   it('correctly reconstructs the 28-cell 14-domino puzzle with 3 sub-boards and unequal sign', async () => {
-    const imagePath = path.resolve(process.cwd(), 'game8.jpg');
+    const imagePath = path.resolve(process.cwd(), 'samples', 'game8.jpg');
 
     const { puzzle, debugData } = await importPuzzleFromImage(imagePath);
 

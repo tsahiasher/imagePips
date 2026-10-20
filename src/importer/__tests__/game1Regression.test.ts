@@ -5,7 +5,7 @@ import { formatConstraint } from '../../domain/constraints';
 
 describe('Golden Regression Case: game1.jpg', () => {
   it('correctly reconstructs the 26-cell 13-domino puzzle with accurate rules, beige unconstrained squares, and merged green cells', async () => {
-    const imagePath = path.resolve(process.cwd(), 'game1.jpg');
+    const imagePath = path.resolve(process.cwd(), 'samples', 'game1.jpg');
 
     const { puzzle, debugData } = await importPuzzleFromImage(imagePath);
 

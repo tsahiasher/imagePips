@@ -5,7 +5,7 @@
 Simply take a screenshot of a daily puzzle (such as the *NYT Pips* puzzle), drop or paste it (`Ctrl+V`) into the app, and the computer vision engine will instantly reconstruct the board—including the grid layout, colored regions, condition badges, and domino inventory—entirely locally with zero server uploads.
 
 <p align="center">
-  <img src="./game1.jpg" alt="Example Puzzle Screenshot (game1.jpg)" width="380" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);" />
+  <img src="./samples/game1.jpg" alt="Example Puzzle Screenshot (game1.jpg)" width="380" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);" />
   <br />
   <em>Example puzzle screenshot recognized by the application</em>
 </p>

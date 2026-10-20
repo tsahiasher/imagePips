@@ -17,7 +17,7 @@ async function saveAllGoldens() {
 
   for (const g of games) {
     const baseName = path.basename(g, path.extname(g));
-    const imagePath = path.resolve(process.cwd(), g);
+    const imagePath = path.resolve(process.cwd(), 'samples', g);
 
     console.log(`Processing ${g}...`);
     const { puzzle, debugData } = await importPuzzleFromImage(imagePath);

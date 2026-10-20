@@ -125,24 +125,98 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({
         strokeLinejoin="round"
       />
 
-      {/* Badge text */}
-      <text
-        x={cx}
-        y={cy}
-        fill="#ffffff"
-        stroke="rgba(15, 23, 42, 0.22)"
-        strokeWidth={0.6}
-        paintOrder="stroke fill"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={text.length >= 3 ? size * 0.38 : text.length === 2 ? size * 0.44 : size * 0.50}
-        fontWeight="900"
-        fontFamily="var(--font-sans), sans-serif"
-        letterSpacing={text.length >= 3 ? '-0.04em' : '-0.01em'}
-        pointerEvents="none"
-      >
-        {text}
-      </text>
+      {/* Badge text or custom high-legibility ≠ vector symbol */}
+      {constraint.type === 'different' ? (
+        <g pointerEvents="none">
+          {/* Keep hidden text node for DOM/test queries */}
+          <text x={cx} y={cy} opacity={0} fontSize={size * 0.5}>
+            {text}
+          </text>
+          {/* Two horizontal bars of '=' */}
+          <line
+            x1={cx - size * 0.19}
+            y1={cy - size * 0.095}
+            x2={cx + size * 0.19}
+            y2={cy - size * 0.095}
+            stroke="rgba(15, 23, 42, 0.25)"
+            strokeWidth={size * 0.078 + 1.1}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx - size * 0.19}
+            y1={cy + size * 0.095}
+            x2={cx + size * 0.19}
+            y2={cy + size * 0.095}
+            stroke="rgba(15, 23, 42, 0.25)"
+            strokeWidth={size * 0.078 + 1.1}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx - size * 0.19}
+            y1={cy - size * 0.095}
+            x2={cx + size * 0.19}
+            y2={cy - size * 0.095}
+            stroke="#ffffff"
+            strokeWidth={size * 0.078}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx - size * 0.19}
+            y1={cy + size * 0.095}
+            x2={cx + size * 0.19}
+            y2={cy + size * 0.095}
+            stroke="#ffffff"
+            strokeWidth={size * 0.078}
+            strokeLinecap="round"
+          />
+          {/* Bold diagonal slash across the bars with subtle halo for crisp separation */}
+          <line
+            x1={cx - size * 0.135}
+            y1={cy + size * 0.22}
+            x2={cx + size * 0.135}
+            y2={cy - size * 0.22}
+            stroke={color}
+            strokeWidth={size * 0.135}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx - size * 0.135}
+            y1={cy + size * 0.22}
+            x2={cx + size * 0.135}
+            y2={cy - size * 0.22}
+            stroke="rgba(15, 23, 42, 0.28)"
+            strokeWidth={size * 0.088 + 1.2}
+            strokeLinecap="round"
+          />
+          <line
+            x1={cx - size * 0.135}
+            y1={cy + size * 0.22}
+            x2={cx + size * 0.135}
+            y2={cy - size * 0.22}
+            stroke="#ffffff"
+            strokeWidth={size * 0.088}
+            strokeLinecap="round"
+          />
+        </g>
+      ) : (
+        <text
+          x={cx}
+          y={cy}
+          fill="#ffffff"
+          stroke="rgba(15, 23, 42, 0.22)"
+          strokeWidth={0.6}
+          paintOrder="stroke fill"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={text.length >= 3 ? size * 0.38 : text.length === 2 ? size * 0.44 : size * 0.50}
+          fontWeight="900"
+          fontFamily="var(--font-sans), sans-serif"
+          letterSpacing={text.length >= 3 ? '-0.04em' : '-0.01em'}
+          pointerEvents="none"
+        >
+          {text}
+        </text>
+      )}
 
       {/* Red error indicator dot when condition is invalid */}
       {invalid && (

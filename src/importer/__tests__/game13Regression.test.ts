@@ -6,7 +6,7 @@ import { solvePuzzle } from '../../game/solver';
 
 describe('Golden Regression Case: game13.jpg', () => {
   it('correctly reconstructs the 20-cell 10-domino puzzle with accurate >11 rule', async () => {
-    const imagePath = path.resolve(process.cwd(), 'game13.jpg');
+    const imagePath = path.resolve(process.cwd(), 'samples', 'game13.jpg');
 
     const { puzzle, debugData } = await importPuzzleFromImage(imagePath);
 
@@ -38,7 +38,7 @@ describe('Golden Regression Case: game13.jpg', () => {
   });
 
   it('recognizes >1 badge accurately instead of >5 when serifed 1 aspect ratio >= 0.60 on mobile screenshots', async () => {
-    const imagePath = path.resolve(process.cwd(), 'game13.jpg');
+    const imagePath = path.resolve(process.cwd(), 'samples', 'game13.jpg');
     const { loadImageFromSource } = await import('../loadImage');
     const { recognizeBadgeToken } = await import('../tokenRecognition');
     const { imageData } = await loadImageFromSource(imagePath);

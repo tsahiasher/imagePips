@@ -6,7 +6,7 @@ import { solvePuzzle } from '../../game/solver';
 
 describe('Golden Regression Case: game12.jpg', () => {
   it('correctly reconstructs the 28-cell 14-domino 9x9 puzzle ("OFF") with accurate ≠ and = rules', async () => {
-    const imagePath = path.resolve(process.cwd(), 'game12.jpg');
+    const imagePath = path.resolve(process.cwd(), 'samples', 'game12.jpg');
 
     const { puzzle, debugData } = await importPuzzleFromImage(imagePath);
 
