@@ -99,6 +99,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
     if (file) {
       handleProcessImageFile(file);
     }
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -275,7 +276,7 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
             <input
               id="screenshot-upload-input"
               type="file"
-              accept="image/png, image/jpeg, image/webp, .json, application/json"
+              accept="image/*"
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
