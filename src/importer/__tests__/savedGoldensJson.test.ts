@@ -18,12 +18,13 @@ const GAMES = [
   'game11.jpg',
   'game12.jpg',
   'game13.jpg',
+  'game14.jpg',
 ];
 
-describe('Saved Golden JSON Regression Suite (game1.jpg - game13.jpg)', () => {
+describe('Saved Golden JSON Regression Suite (game1.jpg - game14.jpg)', () => {
   const outDir = path.resolve(process.cwd(), 'golden_results');
 
-  it('matches the saved per-game pips-build-puzzle v1 golden JSON output for all games 1 to 13', async () => {
+  it('matches the saved per-game pips-build-puzzle v1 golden JSON output for all games 1 to 14', async () => {
     for (const gameFile of GAMES) {
       const baseName = path.basename(gameFile, path.extname(gameFile));
       const imagePath = path.resolve(process.cwd(), 'samples', gameFile);

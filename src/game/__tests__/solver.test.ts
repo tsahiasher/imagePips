@@ -5,8 +5,8 @@ import { deserializePuzzle, Puzzle } from '../../domain/puzzle';
 import { isPuzzleSolved } from '../constraintEngine';
 import { solvePuzzle } from '../solver';
 
-describe('solvePuzzle on golden games 1-13', () => {
-  for (let i = 1; i <= 13; i++) {
+describe('solvePuzzle on golden games 1-14', () => {
+  for (let i = 1; i <= 14; i++) {
     const gameName = `game${i}`;
     it(`solves ${gameName} quickly and produces a valid solution`, () => {
       const goldenPath = path.resolve(process.cwd(), 'golden_results', `${gameName}.json`);

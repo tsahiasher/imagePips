@@ -114,8 +114,8 @@ describe('pips-build-puzzle v1 serialization and deserialization', () => {
     ]);
   });
 
-  it('round-trips all 13 golden puzzles through pips-build-puzzle v1 preserving solvability and solution count', () => {
-    for (let i = 1; i <= 13; i++) {
+  it('round-trips all 14 golden puzzles through pips-build-puzzle v1 preserving solvability and solution count', () => {
+    for (let i = 1; i <= 14; i++) {
       const goldenPath = path.resolve(process.cwd(), 'golden_results', `game${i}.json`);
       const legacyRaw = JSON.parse(fs.readFileSync(goldenPath, 'utf-8'));
       const legacyPuzzle = deserializePuzzle(legacyRaw);

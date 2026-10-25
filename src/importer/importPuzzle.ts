@@ -56,13 +56,13 @@ function getPlausibleConstraintAlternatives(
   const digitSwaps: Record<number, number[]> = {
     0: [8, 6],
     1: [7, 4, 5],
-    2: [1],
-    3: [5, 8],
-    4: [6, 1],
+    2: [1, 3],
+    3: [5, 8, 4, 2],
+    4: [6, 1, 3],
     5: [6, 3, 8, 1],
     6: [8, 4, 5, 0],
     7: [1],
-    8: [6, 5, 9, 3, 0],
+    8: [6, 5, 9, 3, 0, 4],
     9: [8]
   };
 
@@ -87,16 +87,20 @@ function getPlausibleConstraintAlternatives(
 
   if (constraint.type === 'sum') {
     for (const v of candidateValues) addSumAlt(v);
-    // Also check if a 2-digit number 2x was actually >1x (e.g. 28 -> >14 or >18)
-    if (val >= 20 && val < 30) {
+    // Also check if a 2-digit number 1x/2x was actually >x, <x, or >1x (e.g. 12 -> >2, 28 -> >14 or >18)
+    if (val >= 10) {
       const ones = val % 10;
-      addGtAlt(10 + ones);
-      for (const s of digitSwaps[ones] ?? []) {
-        addGtAlt(10 + s);
+      addGtAlt(ones);
+      addLtAlt(ones);
+      if (val >= 20 && val < 30) {
+        addGtAlt(10 + ones);
+        for (const s of digitSwaps[ones] ?? []) {
+          addGtAlt(10 + s);
+        }
       }
+      addGtAlt(val);
+      addLtAlt(val);
     }
-    addGtAlt(val);
-    addLtAlt(val);
   } else if (constraint.type === 'greaterThan') {
     for (const v of candidateValues) addGtAlt(v);
     addLtAlt(val);

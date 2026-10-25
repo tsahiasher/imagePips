@@ -556,7 +556,7 @@ export function recognizeBadgeToken(
     }
   }
 
-  const maxCrossThickness = Math.max(2, Math.floor(rightH * 0.18));
+  const maxCrossThickness = Math.max(3, Math.ceil(rightH * 0.22));
   let crossYEnd = crossY;
   while (
     crossYEnd < rightMaxY - 2 &&
@@ -569,15 +569,21 @@ export function recognizeBadgeToken(
     }
     const centerFilled =
       ptsSet.has(`${rcX},${crossYEnd + 1}`) ||
-      (ptsSet.has(`${rcX - 1},${crossYEnd + 1}`) && ptsSet.has(`${rcX + 1},${crossYEnd + 1}`));
+      (ptsSet.has(`${rcX - 1},${crossYEnd + 1}`) && ptsSet.has(`${rcX + 1},${crossYEnd + 1}`)) ||
+      (span >= rightW * 0.70 &&
+        (ptsSet.has(`${rcX - 1},${crossYEnd + 1}`) || ptsSet.has(`${rcX + 1},${crossYEnd + 1}`)));
     if (span >= rightW * 0.60 && centerFilled) crossYEnd++;
     else break;
   }
 
   let rLowerLeft = 0;
+  let rLowerLeftBelowFringe = 0;
   for (let y = crossYEnd + 1; y <= rightMaxY; y++) {
     for (let x = rightMinX; x <= rightMinX + Math.floor(rightW * 0.35); x++) {
-      if (ptsSet.has(`${x},${y}`)) rLowerLeft++;
+      if (ptsSet.has(`${x},${y}`)) {
+        rLowerLeft++;
+        if (y >= crossYEnd + 2) rLowerLeftBelowFringe++;
+      }
     }
   }
 
@@ -666,7 +672,8 @@ export function recognizeBadgeToken(
   else if (
     maxCrossSpan >= rightW * 0.65 &&
     rightMaxY - crossYEnd >= Math.max(2, Math.floor(rightH * 0.14)) &&
-    rLowerLeft <= Math.max(2, Math.floor(rightW * 0.15)) &&
+    (rLowerLeft <= Math.max(2, Math.floor(rightW * 0.15)) ||
+      (rightMaxY - crossYEnd >= 3 && rLowerLeftBelowFringe <= Math.max(2, Math.floor(rightW * 0.15)))) &&
     rightBotP <= Math.max(4, Math.floor(rightW * 0.62)) &&
     rightTopP < rightW * 0.55
   ) {
@@ -841,8 +848,21 @@ function classifySingleDigit(
     }
   }
 
-  // 2. Digit '7': solid top horizontal bar, narrow bottom point, empty left wall
-  if (topP >= glyphW * 0.70 && botP <= glyphW * 0.40 && maxConsecutiveEmptyLeft >= 2) {
+  // 2. Digit '7': solid top horizontal bar, narrow bottom point, empty left wall, no wide bottom loop
+  let maxBotQuarterSpan = 0;
+  for (let y = maxY - Math.max(2, Math.floor(glyphH * 0.22)); y <= maxY; y++) {
+    let s = 0;
+    for (let x = minX; x <= maxX; x++) {
+      if (ptsSet.has(`${x},${y}`)) s++;
+    }
+    if (s > maxBotQuarterSpan) maxBotQuarterSpan = s;
+  }
+  if (
+    topP >= glyphW * 0.70 &&
+    botP <= glyphW * 0.40 &&
+    maxBotQuarterSpan <= glyphW * 0.65 &&
+    maxConsecutiveEmptyLeft >= 2
+  ) {
     return '7';
   }
 
@@ -863,7 +883,7 @@ function classifySingleDigit(
     }
   }
 
-  const maxCrossThickness = Math.max(2, Math.floor(glyphH * 0.18));
+  const maxCrossThickness = Math.max(3, Math.ceil(glyphH * 0.22));
   let crossYEnd = crossY;
   while (
     crossYEnd < maxY - 2 &&
@@ -876,15 +896,21 @@ function classifySingleDigit(
     }
     const centerFilled =
       ptsSet.has(`${cX},${crossYEnd + 1}`) ||
-      (ptsSet.has(`${cX - 1},${crossYEnd + 1}`) && ptsSet.has(`${cX + 1},${crossYEnd + 1}`));
+      (ptsSet.has(`${cX - 1},${crossYEnd + 1}`) && ptsSet.has(`${cX + 1},${crossYEnd + 1}`)) ||
+      (span >= glyphW * 0.70 &&
+        (ptsSet.has(`${cX - 1},${crossYEnd + 1}`) || ptsSet.has(`${cX + 1},${crossYEnd + 1}`)));
     if (span >= glyphW * 0.60 && centerFilled) crossYEnd++;
     else break;
   }
 
   let lowerLeftPixels = 0;
+  let lowerLeftBelowFringe = 0;
   for (let y = crossYEnd + 1; y <= maxY; y++) {
     for (let x = minX; x <= minX + Math.floor(glyphW * 0.35); x++) {
-      if (ptsSet.has(`${x},${y}`)) lowerLeftPixels++;
+      if (ptsSet.has(`${x},${y}`)) {
+        lowerLeftPixels++;
+        if (y >= crossYEnd + 2) lowerLeftBelowFringe++;
+      }
     }
   }
 
@@ -893,7 +919,7 @@ function classifySingleDigit(
   if (
     maxCrossSpan >= minCrossReq &&
     maxY - crossYEnd >= Math.max(2, Math.floor(glyphH * 0.14)) &&
-    lowerLeftPixels <= maxLL &&
+    (lowerLeftPixels <= maxLL || (maxY - crossYEnd >= 3 && lowerLeftBelowFringe <= maxLL)) &&
     botP <= Math.max(4, Math.floor(glyphW * 0.60)) &&
     topP < glyphW * 0.60
   ) {
