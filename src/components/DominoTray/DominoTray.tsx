@@ -120,6 +120,7 @@ export const DominoTray: React.FC<DominoTrayProps> = ({
           return (
             <div
               key={domino.id}
+              data-domino-slot-id={domino.id}
               className={`tray-domino-slot ${isPlaced ? 'slot-empty' : ''}`}
               style={{
                 position: 'relative',

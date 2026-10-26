@@ -1,10 +1,11 @@
 import React from 'react';
-import { Trophy, RotateCcw, ArrowRight } from 'lucide-react';
+import { Trophy, RotateCcw, ArrowRight, Eye, X } from 'lucide-react';
 import { formatElapsedTime } from '../../game/timer';
 
 interface CompletionDialogProps {
   elapsedMs: number;
   moves: number;
+  onClose: () => void;
   onPlayAgain: () => void;
   onImportAnother: () => void;
 }
@@ -12,11 +13,17 @@ interface CompletionDialogProps {
 export const CompletionDialog: React.FC<CompletionDialogProps> = ({
   elapsedMs,
   moves,
+  onClose,
   onPlayAgain,
   onImportAnother
 }) => {
   return (
     <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -35,6 +42,7 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
       <div
         className="glass-panel animate-fade-in"
         style={{
+          position: 'relative',
           maxWidth: '420px',
           width: '100%',
           padding: '32px 28px',
@@ -48,6 +56,29 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.18)'
         }}
       >
+        <button
+          id="close-completion-dialog-btn"
+          onClick={onClose}
+          aria-label="Close popup and view solved board"
+          title="Close and view solved board"
+          style={{
+            position: 'absolute',
+            top: '14px',
+            right: '14px',
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            color: '#64748b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          <X size={18} />
+        </button>
         {/* Animated celebration icon */}
         <div
           style={{
@@ -123,6 +154,28 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
         {/* Action buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
           <button
+            id="view-solved-board-btn"
+            onClick={onClose}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '12px 20px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)'
+            }}
+          >
+            <Eye size={18} />
+            <span>View Solved Board</span>
+          </button>
+
+          <button
             onClick={onPlayAgain}
             style={{
               display: 'flex',
@@ -135,6 +188,7 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
               color: '#ffffff',
               fontWeight: 700,
               fontSize: '0.95rem',
+              cursor: 'pointer',
               boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
             }}
           >
@@ -155,7 +209,8 @@ export const CompletionDialog: React.FC<CompletionDialogProps> = ({
               border: '1px solid #e2e8f0',
               color: '#334155',
               fontWeight: 600,
-              fontSize: '0.95rem'
+              fontSize: '0.95rem',
+              cursor: 'pointer'
             }}
           >
             <span>Import Another Puzzle</span>

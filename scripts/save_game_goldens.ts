@@ -1,9 +1,10 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
+import jpeg from 'jpeg-js';
 import { serializePuzzle } from '../src/domain/puzzle';
-import { importPuzzleFromImage } from '../src/importer/importPuzzle';
+import { recognize } from '../src/vision/recognize';
 
-async function saveAllGoldens() {
+async function saveAllGoldens(): Promise<void> {
   const games = [
     'game1.jpg', 'game2.jpg', 'game3.jpg', 'game4.jpg',
     'game5.jpg', 'game6.jpg', 'game7.jpg', 'game8.jpg',
@@ -19,18 +20,16 @@ async function saveAllGoldens() {
     const baseName = path.basename(g, path.extname(g));
     const imagePath = path.resolve(process.cwd(), 'samples', g);
 
-    console.log(`Processing ${g}...`);
-    const { puzzle, debugData } = await importPuzzleFromImage(imagePath);
-
+    const raw = jpeg.decode(fs.readFileSync(imagePath), { useTArray: true, formatAsRGBA: true });
+    const { puzzle, warnings } = await recognize({ width: raw.width, height: raw.height, data: raw.data });
     const goldenData = serializePuzzle(puzzle);
 
     const targetJsonPath = path.join(outDir, `${baseName}.json`);
-    fs.writeFileSync(targetJsonPath, JSON.stringify(goldenData, null, 2), 'utf-8');
+    fs.writeFileSync(targetJsonPath, JSON.stringify(goldenData, null, 2) + '\n', 'utf-8');
     console.log(
-      `Saved golden: ${targetJsonPath} (valid=${debugData.validation.valid}, ${goldenData.cells.length} cells, ${goldenData.regions.length} regions, ${goldenData.dominoes.length} dominoes)`
+      `Saved golden: ${baseName}.json (${goldenData.cells.length} cells, ${goldenData.regions.length} regions, ${goldenData.dominoes.length} dominoes, warnings=${warnings.length})`
     );
   }
 }
 
 saveAllGoldens().catch(console.error);
-

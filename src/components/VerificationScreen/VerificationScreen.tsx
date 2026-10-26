@@ -5,7 +5,8 @@ import {
   Edit3,
   Download,
   AlertTriangle,
-  AlertCircle
+  AlertCircle,
+  Wand2
 } from 'lucide-react';
 import { Constraint } from '../../domain/constraints';
 import { Cell, Puzzle, Region, computeConnectedComponents, serializePuzzle } from '../../domain/puzzle';
@@ -13,11 +14,13 @@ import { PuzzleBoard } from '../PuzzleBoard/PuzzleBoard';
 import { PALETTE, RegionListEditor } from '../EditorShared/RegionListEditor';
 import { DominoInventoryEditor } from '../EditorShared/DominoInventoryEditor';
 import { SolvabilityBadge } from '../EditorShared/SolvabilityBadge';
+import { isSolveOptionEnabled } from '../../vision/urlParams';
 
 interface VerificationScreenProps {
   initialPuzzle: Puzzle;
   sourceImageUrl: string;
   onStartPuzzle: (puzzle: Puzzle) => void;
+  onSolvePuzzle?: (puzzle: Puzzle) => void;
   onBack: () => void;
 }
 
@@ -25,6 +28,7 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
   initialPuzzle,
   sourceImageUrl,
   onStartPuzzle,
+  onSolvePuzzle,
   onBack
 }) => {
   const [puzzle, setPuzzle] = useState<Puzzle>(initialPuzzle);
@@ -341,6 +345,16 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
     onStartPuzzle(puzzle);
   };
 
+  const handleSolve = () => {
+    if (!isConsistent) {
+      alert(
+        `Cannot solve: ${totalPlayableCells} playable cells detected, but ${puzzle.dominoes.length} dominoes cover ${totalDominoSlots} cells.`
+      );
+      return;
+    }
+    onSolvePuzzle?.(puzzle);
+  };
+
   return (
     <div
       className="verification-screen-root"
@@ -434,6 +448,34 @@ export const VerificationScreen: React.FC<VerificationScreenProps> = ({
             <Edit3 size={15} />
             <span>{showEditPane ? 'Close Editor' : 'Edit'}</span>
           </button>
+
+          {isSolveOptionEnabled() && onSolvePuzzle && (
+            <button
+              id="verify-solve-btn"
+              onClick={handleSolve}
+              disabled={!isConsistent || totalPlayableCells === 0}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                background: isConsistent
+                  ? 'linear-gradient(135deg, #4f46e5, #6366f1)'
+                  : '#f1f5f9',
+                border: isConsistent ? 'none' : '1px solid #e2e8f0',
+                color: isConsistent ? '#ffffff' : '#94a3b8',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: isConsistent ? 'pointer' : 'not-allowed',
+                whiteSpace: 'nowrap',
+                boxShadow: isConsistent ? '0 2px 6px rgba(79, 70, 229, 0.3)' : 'none'
+              }}
+            >
+              <Wand2 size={15} />
+              <span>Solve</span>
+            </button>
+          )}
 
           <button
             onClick={handleStart}

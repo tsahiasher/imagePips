@@ -173,14 +173,6 @@
       "condition": "5"
     },
     {
-      "color": 3,
-      "cells": [
-        "3,4",
-        "4,4"
-      ],
-      "condition": "9"
-    },
-    {
       "color": 4,
       "cells": [
         "3,5"
@@ -214,6 +206,14 @@
         "4,3"
       ],
       "condition": "1"
+    },
+    {
+      "color": 3,
+      "cells": [
+        "3,4",
+        "4,4"
+      ],
+      "condition": "9"
     },
     {
       "color": 5,

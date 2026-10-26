@@ -35,14 +35,6 @@
   ],
   "regions": [
     {
-      "color": 0,
-      "cells": [
-        "0,0",
-        "1,0"
-      ],
-      "condition": "8"
-    },
-    {
       "color": 1,
       "cells": [
         "0,1",
@@ -51,21 +43,20 @@
       "condition": "4"
     },
     {
-      "color": 2,
-      "cells": [
-        "0,4",
-        "1,4",
-        "2,4"
-      ],
-      "condition": "≠"
-    },
-    {
       "color": 3,
       "cells": [
         "0,5",
         "0,6"
       ],
       "condition": "2"
+    },
+    {
+      "color": 0,
+      "cells": [
+        "0,0",
+        "1,0"
+      ],
+      "condition": "8"
     },
     {
       "color": 4,
@@ -80,6 +71,15 @@
         "2,2"
       ],
       "condition": "3"
+    },
+    {
+      "color": 2,
+      "cells": [
+        "0,4",
+        "1,4",
+        "2,4"
+      ],
+      "condition": "≠"
     },
     {
       "color": 0,
@@ -103,14 +103,6 @@
       "condition": ">1"
     },
     {
-      "color": 3,
-      "cells": [
-        "3,4",
-        "4,4"
-      ],
-      "condition": "5"
-    },
-    {
       "color": 4,
       "cells": [
         "4,0"
@@ -121,6 +113,14 @@
       "color": 5,
       "cells": [
         "4,2"
+      ],
+      "condition": "5"
+    },
+    {
+      "color": 3,
+      "cells": [
+        "3,4",
+        "4,4"
       ],
       "condition": "5"
     },

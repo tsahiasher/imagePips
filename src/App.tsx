@@ -18,6 +18,7 @@ export const App: React.FC = () => {
   const [activeGameState, setActiveGameState] = useState<Partial<GameState> | undefined>(undefined);
   const [sourceImageUrl, setSourceImageUrl] = useState<string>('');
   const [hasSavedSession, setHasSavedSession] = useState(false);
+  const [autoSolveRequested, setAutoSolveRequested] = useState(false);
 
   // Pull-to-refresh state for Android touch gesture
   const [pullDistance, setPullDistance] = useState(0);
@@ -138,12 +139,21 @@ export const App: React.FC = () => {
   const handleDirectPlay = (puzzle: Puzzle) => {
     setActivePuzzle(puzzle);
     setActiveGameState(undefined);
+    setAutoSolveRequested(false);
     setView('play');
   };
 
   const handleStartPuzzleFromVerify = (verifiedPuzzle: Puzzle) => {
     setActivePuzzle(verifiedPuzzle);
     setActiveGameState(undefined);
+    setAutoSolveRequested(false);
+    setView('play');
+  };
+
+  const handleSolvePuzzle = (puzzle: Puzzle) => {
+    setActivePuzzle(puzzle);
+    setActiveGameState(undefined);
+    setAutoSolveRequested(true);
     setView('play');
   };
 
@@ -200,6 +210,7 @@ export const App: React.FC = () => {
           initialPuzzle={activePuzzle}
           sourceImageUrl={sourceImageUrl}
           onStartPuzzle={handleStartPuzzleFromVerify}
+          onSolvePuzzle={handleSolvePuzzle}
           onBack={() => setView('import')}
         />
       )}
@@ -207,6 +218,7 @@ export const App: React.FC = () => {
       {view === 'manual' && (
         <ManualEditor
           onStartPuzzle={handleDirectPlay}
+          onSolvePuzzle={handleSolvePuzzle}
           onCancel={() => setView('import')}
         />
       )}
@@ -217,6 +229,8 @@ export const App: React.FC = () => {
           initialState={activeGameState}
           onBack={() => setView('import')}
           onImportAnother={() => setView('import')}
+          autoSolve={autoSolveRequested}
+          onAutoSolveStarted={() => setAutoSolveRequested(false)}
         />
       )}
     </div>

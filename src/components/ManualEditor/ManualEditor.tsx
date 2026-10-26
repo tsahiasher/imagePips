@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Play, Download, Upload } from 'lucide-react';
+import { ArrowLeft, Play, Download, Upload, Wand2 } from 'lucide-react';
 import { Constraint } from '../../domain/constraints';
 import { DominoDefinition } from '../../domain/domino';
 import {
@@ -14,15 +14,18 @@ import {
 import { PALETTE, RegionListEditor } from '../EditorShared/RegionListEditor';
 import { DominoInventoryEditor } from '../EditorShared/DominoInventoryEditor';
 import { SolvabilityBadge } from '../EditorShared/SolvabilityBadge';
+import { isSolveOptionEnabled } from '../../vision/urlParams';
 
 interface ManualEditorProps {
   onStartPuzzle: (puzzle: Puzzle) => void;
+  onSolvePuzzle?: (puzzle: Puzzle) => void;
   onCancel: () => void;
   initialPuzzle?: Puzzle;
 }
 
 export const ManualEditor: React.FC<ManualEditorProps> = ({
   onStartPuzzle,
+  onSolvePuzzle,
   onCancel,
   initialPuzzle
 }) => {
@@ -245,6 +248,20 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
     });
   };
 
+  const handleSolve = () => {
+    if (!isBalanced) {
+      alert(
+        `Cannot solve: ${totalPlayable} playable cells, but ${dominoes.length} dominoes cover ${dominoCoverage} cells.`
+      );
+      return;
+    }
+
+    onSolvePuzzle?.({
+      ...currentPuzzle,
+      id: initialPuzzle?.id ?? `custom_${Date.now()}`
+    });
+  };
+
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const handleExportPuzzle = () => {
@@ -430,30 +447,59 @@ export const ManualEditor: React.FC<ManualEditorProps> = ({
           <SolvabilityBadge puzzle={currentPuzzle} />
         </div>
 
-        {/* Right: Play Puzzle */}
-        <button
-          onClick={handleStart}
-          disabled={!isBalanced || totalPlayable === 0}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '7px 16px',
-            borderRadius: '8px',
-            background: isBalanced
-              ? 'linear-gradient(135deg, #10b981, #059669)'
-              : '#f1f5f9',
-            border: isBalanced ? 'none' : '1px solid #e2e8f0',
-            color: isBalanced ? '#ffffff' : '#94a3b8',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            cursor: isBalanced ? 'pointer' : 'not-allowed',
-            boxShadow: isBalanced ? '0 2px 6px rgba(16, 185, 129, 0.3)' : 'none'
-          }}
-        >
-          <Play size={15} fill={isBalanced ? '#ffffff' : 'none'} />
-          <span>Play Puzzle</span>
-        </button>
+        {/* Right: Solve / Play Puzzle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {isSolveOptionEnabled() && onSolvePuzzle && (
+            <button
+              id="manual-solve-btn"
+              onClick={handleSolve}
+              disabled={!isBalanced || totalPlayable === 0}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 14px',
+                borderRadius: '8px',
+                background: isBalanced
+                  ? 'linear-gradient(135deg, #4f46e5, #6366f1)'
+                  : '#f1f5f9',
+                border: isBalanced ? 'none' : '1px solid #e2e8f0',
+                color: isBalanced ? '#ffffff' : '#94a3b8',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: isBalanced ? 'pointer' : 'not-allowed',
+                boxShadow: isBalanced ? '0 2px 6px rgba(79, 70, 229, 0.3)' : 'none'
+              }}
+            >
+              <Wand2 size={15} />
+              <span>Solve</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleStart}
+            disabled={!isBalanced || totalPlayable === 0}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 16px',
+              borderRadius: '8px',
+              background: isBalanced
+                ? 'linear-gradient(135deg, #10b981, #059669)'
+                : '#f1f5f9',
+              border: isBalanced ? 'none' : '1px solid #e2e8f0',
+              color: isBalanced ? '#ffffff' : '#94a3b8',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: isBalanced ? 'pointer' : 'not-allowed',
+              boxShadow: isBalanced ? '0 2px 6px rgba(16, 185, 129, 0.3)' : 'none'
+            }}
+          >
+            <Play size={15} fill={isBalanced ? '#ffffff' : 'none'} />
+            <span>Play Puzzle</span>
+          </button>
+        </div>
       </header>
 
       {/* Mobile Tab Switcher */}

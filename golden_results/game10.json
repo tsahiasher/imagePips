@@ -50,15 +50,6 @@
       "condition": ">3"
     },
     {
-      "color": 3,
-      "cells": [
-        "0,7",
-        "1,7",
-        "2,7"
-      ],
-      "condition": ">14"
-    },
-    {
       "color": 4,
       "cells": [
         "1,2"
@@ -74,6 +65,29 @@
       "condition": "="
     },
     {
+      "color": 1,
+      "cells": [
+        "2,2"
+      ],
+      "condition": "1"
+    },
+    {
+      "color": 4,
+      "cells": [
+        "2,6"
+      ],
+      "condition": ">2"
+    },
+    {
+      "color": 3,
+      "cells": [
+        "0,7",
+        "1,7",
+        "2,7"
+      ],
+      "condition": ">14"
+    },
+    {
       "color": 0,
       "cells": [
         "2,0",
@@ -84,27 +98,13 @@
       "condition": "9"
     },
     {
-      "color": 1,
-      "cells": [
-        "2,2"
-      ],
-      "condition": "1"
-    },
-    {
       "color": 2,
       "cells": [
         "2,4",
-        "3,4",
-        "2,5"
+        "2,5",
+        "3,4"
       ],
       "condition": ">9"
-    },
-    {
-      "color": 4,
-      "cells": [
-        "2,6"
-      ],
-      "condition": ">2"
     },
     {
       "color": 5,

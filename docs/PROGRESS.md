@@ -1,5 +1,48 @@
 # Progress Log
 
+**2026-10-26 — Replace recognition pipeline with `pips_build`'s `src/vision/` algorithm and add `?solve=1` animated auto-solver with Stop/Resume & board view (code + tests + docs). ✅ DONE**
+- Completed two major features and removed all legacy recognition and debug code:
+  1. **Adopted `pips_build` Vision Pipeline (`src/vision/`) & Removed Legacy Importer (`src/importer/`, `src/debug/`, `scripts/*.py`)**:
+     - Copied `pips_build`'s scale-normalized CIE $L^*a^*b^*$ + morphological + resampled $8 \times 12$ glyph template-matching recognizer into `src/vision/` (`image.ts`, `palette.ts`, `glyphs.ts`, `glyphTemplates.ts`, `recognize.ts`, `worker.ts`, `client.ts`).
+     - Wired `ImportScreen.tsx` to `loadImageFile` and `recognizeInWorker` (`src/vision/client.ts`).
+     - Removed the entire legacy `src/importer/` directory, `src/debug/ImportDebugView/ImportDebugView.tsx`, and all legacy Python/PNG debug scripts in `scripts/`.
+     - Updated `golden_results/game1.json`–`game14.json` and `scripts/save_game_goldens.ts`, and added `src/vision/__tests__/recognize.test.ts`.
+  2. **Added `?solve=1` Animated Auto-Solver Across Edit, Build, and Play Screens**:
+     - Added `isSolveOptionEnabled()` in `src/vision/urlParams.ts`.
+     - Added **Solve** buttons to `VerificationScreen.tsx`, `ManualEditor.tsx`, and `GameStatus.tsx` when `?solve=1` is present in the URL; clicking Solve on Edit or Build switches to Play and automatically starts the animation.
+     - Implemented `startSolveAnimation` and `stopSolveAnimation` in `PlayScreen.tsx` using the existing `solvePuzzle` solver (`src/game/solver.ts`), animating each domino moving, scaling, and rotating from its `[data-domino-slot-id]` slot in `DominoTray.tsx` to its target cells on `PuzzleBoard.tsx`.
+     - Added Stop/Resume support (clicking Stop halts in place; clicking Solve resumes from the remaining unplaced dominoes), hid the Solve button when the board is solved, and added a **View Solved Board** / close button to `CompletionDialog.tsx`.
+- Files touched:
+  - `src/vision/image.ts` (new)
+  - `src/vision/palette.ts` (new)
+  - `src/vision/glyphs.ts` (new)
+  - `src/vision/glyphTemplates.ts` (new)
+  - `src/vision/recognize.ts` (new)
+  - `src/vision/worker.ts` (new)
+  - `src/vision/client.ts` (new)
+  - `src/vision/urlParams.ts` (new)
+  - `src/vision/__tests__/recognize.test.ts` (new)
+  - `src/App.tsx` (modified: `autoSolveRequested` state and `handleSolvePuzzle`)
+  - `src/main.tsx` (modified: removed legacy `window.importPuzzleFromImage`)
+  - `src/components/ImportScreen/ImportScreen.tsx` (modified: wired to `loadImageFile` & `recognizeInWorker`)
+  - `src/components/VerificationScreen/VerificationScreen.tsx` (modified: added `?solve=1` Solve button)
+  - `src/components/ManualEditor/ManualEditor.tsx` (modified: added `?solve=1` Solve button)
+  - `src/components/PlayScreen/PlayScreen.tsx` (modified: added tray-to-board solve animation, Stop/Resume, and completion dialog dismissal)
+  - `src/components/GameStatus/GameStatus.tsx` (modified: added Solve / Stop button)
+  - `src/components/DominoTray/DominoTray.tsx` (modified: added `data-domino-slot-id`)
+  - `src/components/CompletionDialog/CompletionDialog.tsx` (modified: added View Solved Board / close button)
+  - `vite.config.ts` (modified: added `worker: { format: 'es' }` and `test.include`)
+  - `scripts/save_game_goldens.ts` (modified: wired to `src/vision/recognize.ts`)
+  - `golden_results/game1.json`–`golden_results/game14.json` (modified: updated with `src/vision/recognize.ts` output)
+  - `src/importer/*` & `src/importer/__tests__/*` (deleted: 27 files)
+  - `src/debug/ImportDebugView/ImportDebugView.tsx` (deleted)
+  - `scripts/*.py` & `scripts/badges_game2.png` (deleted: 24 files)
+  - `docs/DECISIONS.md` (Decisions 19 & 20)
+  - `docs/PROGRESS.md` (this entry)
+- Proof:
+  - `npm run build` succeeds (`dist/assets/worker-*.js` + main bundle built cleanly).
+  - `npx vitest run` passes all 7 test suites (74 tests), including all 14 sample screenshots (`game1.jpg`–`game14.jpg`) with 0 warnings.
+
 **2026-10-19 — Game 13: Fix `>11` and mobile `>1` (vs `>5`) condition badge recognition, add golden snapshot and regression suite (offline, code + tests + docs). ✅ DONE**
 - Resolved `game13` condition badge recognition issues for both the orange `>11` badge (`badge_5`) and the green `>1` badge (`badge_6`) on mobile screenshots:
   1. **Chevron `>` detection (`isChevronRight`)**: In `>11` (`62x63` orange badge), the `6x6` `>` glyph had its top-left pixel at `leftMinX` (`-14`) and its bottom-left pixel at `leftMinX + 2` (`-12`), causing single-column `x25 = -13` to report `span25 = 1 < span75 = 3`. Added `maxLeftSpan` across the left 40% of `leftW` along with `topRightPixels === 0` and `botRowOuterRight === 0` (plus `rightW / rightH >= 1.45 && botRowOuterRight === 0` recovery for 3-character tokens) so compact `>` chevrons are reliably recognized.

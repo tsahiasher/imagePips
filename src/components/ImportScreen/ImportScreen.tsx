@@ -5,7 +5,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { deserializePuzzle, Puzzle } from '../../domain/puzzle';
-import { importPuzzleFromImage, ImportProgressUpdate } from '../../importer/importPuzzle';
+import { loadImageFile, recognizeInWorker } from '../../vision/client';
+
+interface ImportProgressUpdate {
+  stage: string;
+  percent: number;
+}
 
 interface ImportScreenProps {
   onPuzzleReady: (puzzle: Puzzle, sourceImageUrl: string) => void;
@@ -70,22 +75,18 @@ export const ImportScreen: React.FC<ImportScreenProps> = ({
     setProgress({ stage: 'Starting fresh import session…', percent: 5 });
 
     try {
-      const { puzzle, debugData } = await importPuzzleFromImage(
-        file,
-        (update) => {
-          if (currentSessionIdRef.current === sessionId) {
-            setProgress(update);
-          }
-        },
-        sessionId
-      );
+      const { imageData, dataUrl } = await loadImageFile(file);
+      const result = await recognizeInWorker(imageData, (stage, fraction) => {
+        if (currentSessionIdRef.current === sessionId) {
+          setProgress({ stage, percent: Math.round(fraction * 100) });
+        }
+      });
 
       if (currentSessionIdRef.current !== sessionId) {
         return; // Ignore stale result from cancelled or superseded session
       }
 
-      (window as any).__lastImportResult = { puzzle, debugData };
-      onPuzzleReady(puzzle, debugData.sourceImageUrl);
+      onPuzzleReady(result.puzzle, dataUrl);
     } catch (err) {
       if (currentSessionIdRef.current !== sessionId) return;
       console.error(err);

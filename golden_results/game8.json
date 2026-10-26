@@ -35,15 +35,6 @@
   ],
   "regions": [
     {
-      "color": 0,
-      "cells": [
-        "0,0",
-        "1,0",
-        "0,1"
-      ],
-      "condition": "≠"
-    },
-    {
       "color": 1,
       "cells": [
         "0,2"
@@ -56,6 +47,15 @@
         "0,4"
       ],
       "condition": "4"
+    },
+    {
+      "color": 0,
+      "cells": [
+        "0,0",
+        "0,1",
+        "1,0"
+      ],
+      "condition": "≠"
     },
     {
       "color": 3,
@@ -74,13 +74,11 @@
       "condition": "="
     },
     {
-      "color": 5,
+      "color": 2,
       "cells": [
-        "1,4",
-        "2,4",
-        "3,4"
+        "2,7"
       ],
-      "condition": "9"
+      "condition": "4"
     },
     {
       "color": 1,
@@ -92,18 +90,20 @@
       "condition": "="
     },
     {
-      "color": 2,
-      "cells": [
-        "2,7"
-      ],
-      "condition": "4"
-    },
-    {
       "color": 3,
       "cells": [
         "3,2"
       ],
       "condition": "3"
+    },
+    {
+      "color": 5,
+      "cells": [
+        "1,4",
+        "2,4",
+        "3,4"
+      ],
+      "condition": "9"
     },
     {
       "color": 4,
